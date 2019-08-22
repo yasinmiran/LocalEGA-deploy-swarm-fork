@@ -108,8 +108,8 @@ public class GenerateCertificateTask extends LocalEGATask {
                 DateTime.now().plusYears(1).toDate(),
                 subject, keyPair.getPublic());
 
-        builder.addExtension(Extension.subjectKeyIdentifier, true, getSubjectKeyId(keyPair.getPublic()));
-        builder.addExtension(Extension.authorityKeyIdentifier, true, getAuthorityKeyId(rootKeyPair.getPublic()));
+        builder.addExtension(Extension.subjectKeyIdentifier, false, getSubjectKeyId(keyPair.getPublic()));
+        builder.addExtension(Extension.authorityKeyIdentifier, false, getAuthorityKeyId(rootKeyPair.getPublic()));
         builder.addExtension(Extension.basicConstraints, true, new BasicConstraints(false));
         builder.addExtension(Extension.keyUsage, true, new KeyUsage(
                 KeyUsage.nonRepudiation | KeyUsage.digitalSignature | KeyUsage.keyEncipherment
@@ -143,7 +143,7 @@ public class GenerateCertificateTask extends LocalEGATask {
             builder.addExtension(Extension.subjectAlternativeName, false, generalNames);
         }
 
-        ContentSigner signer = new JcaContentSignerBuilder("SHA256withRSA").build(keyPair.getPrivate());
+        ContentSigner signer = new JcaContentSignerBuilder("SHA256withRSA").build(rootKeyPair.getPrivate());
         X509CertificateHolder holder = builder.build(signer);
 
         JcaX509CertificateConverter converter = new JcaX509CertificateConverter();
