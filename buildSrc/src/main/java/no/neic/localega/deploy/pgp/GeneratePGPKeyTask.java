@@ -40,7 +40,6 @@ public class GeneratePGPKeyTask extends LocalEGATask {
         FileUtils.write(egaSecPass, passphrase, Charset.defaultCharset());
     }
 
-
     private void generatePGPKeyPair(String id, String passphrase) throws Exception {
         PGPKeyRingGenerator generator = createPGPKeyRingGenerator(id, passphrase.toCharArray());
 

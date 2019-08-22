@@ -17,6 +17,7 @@ dependencies {
 
 import no.neic.localega.deploy.certificates.GenerateCertificateTask
 import no.neic.localega.deploy.pgp.GeneratePGPKeyTask
+import no.neic.localega.deploy.conf.GenerateConfIniTask
 
 task generateCertificate(type: GenerateCertificateTask) {
     description = 'Generates client/server certs either based on supplied root CA or along with generating new root CA.\n' +
@@ -29,4 +30,10 @@ task generatePGPKey(type: GeneratePGPKeyTask) {
     description = 'Generates PGP key, stores passphrse to file.\n' +
     'Sample usage:\n' +
     'gradle generatePGPKey -Pid=ega -Ppassphrase=some_really_strong_password'
+}
+
+task generateConfIni(type: GenerateConfIniTask) {
+    description = 'Generates conf.ini file based on environment variables.\n' +
+    'Sample usage:\n' +
+    'gradle generateConfIni'
 }
