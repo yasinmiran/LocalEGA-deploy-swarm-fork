@@ -1,5 +1,5 @@
 language: generic
 
 script:
-  - ./deploy-private.sh
-  - ./deploy-public.sh
+  - ./download.sh
+  - ./deploy.sh
