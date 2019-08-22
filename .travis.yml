@@ -1,0 +1,5 @@
+language: generic
+
+script:
+  - ./deploy-private.sh
+  - ./deploy-public.sh

@@ -213,9 +213,15 @@ volumes:
   db:
 
 configs:
-  conf.ini:
+  CA.cert:
     external: true
-  keys.ini.enc:
+  client-server.cert:
+    external: true
+  client-server.key:
+    external: true
+  db.entrypoint.sh:
+    external: true
+  conf.ini:
     external: true
   ega.sec:
     external: true
@@ -226,12 +232,4 @@ configs:
   ega2.sec.pass:
     external: true
   ega.shared.pass:
-    external: true
-  CA.cert:
-    external: true
-  client-server.cert:
-    external: true
-  client-server.key:
-    external: true
-  db.entrypoint.sh:
     external: true
