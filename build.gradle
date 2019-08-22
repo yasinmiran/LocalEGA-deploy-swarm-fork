@@ -15,8 +15,18 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
-import no.neic.localega.deploy.certificates.GenerateCertificatesTask
+import no.neic.localega.deploy.certificates.GenerateCertificateTask
+import no.neic.localega.deploy.pgp.GeneratePGPKeyTask
 
-task generateCertificates(type: GenerateCertificatesTask) {
-    description = 'Generate client/server certs either based on supplied root CA or along with generating new root CA.'
+task generateCertificate(type: GenerateCertificateTask) {
+    description = 'Generates client/server certs either based on supplied root CA or along with generating new root CA.\n' +
+    'Sample usage:\n' +
+    'gradle generateCertificate -PsubjectString=C=NO,ST=Oslo,L=Oslo,O=UiO,OU=IFI,CN=nels-developers@googlegroups.com\n' +
+    'gradle generateCertificate -PsubjectString=C=NO,ST=Oslo,L=Oslo,O=UiO,OU=IFI,CN=nels-developers@googlegroups.com -PfileName=localhost -PipAddress=127.0.0.1 -Ptype=SERVER -ProotCA=rootCA.pem -ProotCAKey=rootCA-key.pem'
+}
+
+task generatePGPKey(type: GeneratePGPKeyTask) {
+    description = 'Generates PGP key, stores passphrse to file.\n' +
+    'Sample usage:\n' +
+    'gradle generatePGPKey -Pid=ega -Ppassphrase=some_really_strong_password'
 }
