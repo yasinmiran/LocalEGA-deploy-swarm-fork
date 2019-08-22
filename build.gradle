@@ -1,0 +1,22 @@
+plugins {
+    id 'java'
+}
+
+group 'no.neic.localega'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+import no.neic.localega.deploy.certificates.GenerateCertificatesTask
+
+task generateCertificates(type: GenerateCertificatesTask) {
+    description = 'Generate client/server certs either based on supplied root CA or along with generating new root CA.'
+}

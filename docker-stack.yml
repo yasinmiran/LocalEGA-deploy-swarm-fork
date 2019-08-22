@@ -1,0 +1,237 @@
+version: '3.3'
+
+services:
+
+  db:
+    image: egarchive/lega-db:latest
+    ports:
+      - "5432:5432"
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - DB_LEGA_IN_PASSWORD
+      - DB_LEGA_OUT_PASSWORD
+      - PGDATA=/ega/data
+      - PG_SERVER_CERT=/etc/ega/pg.cert
+      - PG_SERVER_KEY=/etc/ega/pg.key
+      - PG_CA=/etc/ega/CA.cert
+      - PG_VERIFY_PEER=1
+    configs:
+      - source: client-server.cert
+        target: /etc/ega/pg.cert
+        uid: '70'
+        gid: '70'
+        mode: 0600
+      - source: client-server.key
+        target: /etc/ega/pg.key
+        uid: '70'
+        gid: '70'
+        mode: 0600
+      - source: CA.cert
+        target: /etc/ega/CA.cert
+        uid: '70'
+        gid: '70'
+        mode: 0600
+      - source: db.entrypoint.sh
+        target: /usr/local/bin/entrypoint.sh
+        mode: 0777
+    volumes:
+      - db:/ega/data
+
+  inbox-s3:
+    image: minio/minio:RELEASE.2019-02-12T21-58-47Z
+    ports:
+      - "9001:9000"
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - MINIO_ACCESS_KEY=${INBOX_S3_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${INBOX_S3_SECRET_KEY}
+    configs:
+      - source: client-server.cert
+        target: /root/.minio/certs/public.crt
+      - source: client-server.key
+        target: /root/.minio/certs/private.key
+      - source: CA.cert
+        target: /root/.minio/CAs/LocalEGA.crt
+    volumes:
+      - inbox_s3:/data
+    command: server /data
+
+  vault-s3:
+    image: minio/minio:RELEASE.2019-02-12T21-58-47Z
+    ports:
+      - "9000:9000"
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - MINIO_ACCESS_KEY=${VAULT_S3_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${VAULT_S3_SECRET_KEY}
+    configs:
+      - source: client-server.cert
+        target: /root/.minio/certs/public.crt
+      - source: client-server.key
+        target: /root/.minio/certs/private.key
+      - source: CA.cert
+        target: /root/.minio/CAs/LocalEGA.crt
+    volumes:
+      - vault_s3:/data
+    command: server /data
+
+  keys:
+    image: cscfi/ega-keyserver:latest
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - SPRING_PROFILES_ACTIVE=no-oss
+      - EGA_KEY_PATH=/etc/ega/pgp/ega.sec,/etc/ega/pgp/ega2.sec
+      - EGA_KEYPASS_PATH=/etc/ega/pgp/ega.sec.pass,/etc/ega/pgp/ega2.sec.pass
+      - EGA_SHAREDPASS_PATH=/etc/ega/pgp/ega.shared.pass
+      - EGA_PUBLICKEY_URL=
+      - EGA_LEGACY_PATH=
+    configs:
+      - source: ega.sec
+        target: /etc/ega/pgp/ega.sec
+      - source: ega.sec.pass
+        target: /etc/ega/pgp/ega.sec.pass
+      - source: ega2.sec
+        target: /etc/ega/pgp/ega2.sec
+      - source: ega2.sec.pass
+        target: /etc/ega/pgp/ega2.sec.pass
+      - source: ega.shared.pass
+        target: /etc/ega/pgp/ega.shared.pass
+      - source: client-server.cert
+        target: /etc/ega/ssl.cert
+      - source: client-server.key
+        target: /etc/ega/ssl.key
+      - source: CA.cert
+        target: /etc/ega/CA.cert
+    user: lega
+    entrypoint: ["ega-keyserver", "--keys", "/etc/ega/keys.ini.enc"]
+
+  verify:
+    image: egarchive/lega-base:latest
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    depends_on:
+      - db
+      - keys
+      - s3
+      - mq
+    environment:
+      - LEGA_PASSWORD
+      - S3_ACCESS_KEY=${VAULT_S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${VAULT_S3_SECRET_KEY}
+    configs:
+      - source: conf.ini
+        target: /etc/ega/conf.ini
+      - source: client-server.cert
+        target: /etc/ega/ssl.cert
+      - source: client-server.key
+        target: /etc/ega/ssl.key
+        uid: '1000'
+        gid: '1000'
+        mode: 0600
+      - source: CA.cert
+        target: /etc/ega/CA.cert
+    user: lega
+    entrypoint: ["ega-verify"]
+
+  finalize:
+    image: egarchive/lega-base:latest
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    depends_on:
+      - mq
+      - db
+    configs:
+      - source: conf.ini
+        target: /etc/ega/conf.ini
+      - source: client-server.cert
+        target: /etc/ega/ssl.cert
+      - source: client-server.key
+        target: /etc/ega/ssl.key
+        uid: '1000'
+        gid: '1000'
+        mode: 0600
+      - source: CA.cert
+        target: /etc/ega/CA.cert
+    user: lega
+    entrypoint: ["ega-finalize"]
+
+  ingest:
+    image: egarchive/lega-base:latest
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    depends_on:
+      - mq
+      - db
+      - inbox-s3
+      - vault-s3
+    environment:
+      - S3_ACCESS_KEY=${VAULT_S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${VAULT_S3_SECRET_KEY}
+    configs:
+      - source: conf.ini
+        target: /etc/ega/conf.ini
+      - source: client-server.cert
+        target: /etc/ega/ssl.cert
+      - source: client-server.key
+        target: /etc/ega/ssl.key
+        uid: '1000'
+        gid: '1000'
+        mode: 0600
+      - source: CA.cert
+        target: /etc/ega/CA.cert
+    user: lega
+    entrypoint: ["ega-ingest"]
+
+volumes:
+  inbox_s3:
+  vault_s3:
+  db:
+
+configs:
+  conf.ini:
+    external: true
+  keys.ini.enc:
+    external: true
+  ega.sec:
+    external: true
+  ega.sec.pass:
+    external: true
+  ega2.sec:
+    external: true
+  ega2.sec.pass:
+    external: true
+  ega.shared.pass:
+    external: true
+  CA.cert:
+    external: true
+  client-server.cert:
+    external: true
+  client-server.key:
+    external: true
+  db.entrypoint.sh:
+    external: true
