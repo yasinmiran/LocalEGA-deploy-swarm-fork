@@ -88,7 +88,7 @@ services:
     command: server /data
 
   keys:
-    image: cscfi/ega-keyserver:latest
+    image: egarchive/lega-keyserver:release.v0.0.1
     deploy:
       restart_policy:
         condition: on-failure
