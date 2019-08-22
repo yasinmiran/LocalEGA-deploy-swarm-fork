@@ -52,6 +52,8 @@ public class GenerateCertificatesTask extends LocalEGATask {
         }
     }
 
+    // Sample command:
+    // gradle generateCertificates -PsubjectString=C=NO,ST=Oslo,L=Oslo,O=UiO,OU=IFI,CN=nels-developers@googlegroups.com
     private void generateRootCA(String subjectString) throws IOException, GeneralSecurityException, OperatorCreationException {
         KeyPair keyPair = KeyUtils.generateKeyPair("ssh-rsa", 2048);
 
@@ -86,6 +88,8 @@ public class GenerateCertificatesTask extends LocalEGATask {
         writePrivateKeyDER(keyPair, getProject().file("rootCA-key.der"));
     }
 
+    // Sample command:
+    // gradle generateCertificates -PsubjectString=C=NO,ST=Oslo,L=Oslo,O=UiO,OU=IFI,CN=nels-developers@googlegroups.com -PfileName=TSD -PipAddress=158.39.48.136 -Ptype=SERVER -ProotCA=/Users/dmytrot/LocalEGA-deploy-swarm/rootCA.pem -ProotCAKey=/Users/dmytrot/LocalEGA-deploy-swarm/rootCA-key.pem -PjksPassword=123123123
     private void generateCertificate(String subjectString,
                                      CertificateType type,
                                      String dnsName,
