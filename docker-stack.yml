@@ -118,8 +118,6 @@ services:
         target: /etc/ega/ssl.key
       - source: CA.cert
         target: /etc/ega/CA.cert
-    user: lega
-    entrypoint: ["ega-keyserver", "--keys", "/etc/ega/keys.ini.enc"]
 
   verify:
     image: egarchive/lega-base:latest
