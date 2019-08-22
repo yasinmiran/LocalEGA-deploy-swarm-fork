@@ -3,6 +3,7 @@
 if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then
   docker stack rm LEGA
 
+  sleep 10
   docker volume rm LEGA_inbox_s3
   docker volume rm LEGA_vault_s3
   docker volume rm LEGA_db
@@ -32,8 +33,6 @@ if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then
   echo $LEGA_PASSWORD > ega.shared.pass
 
   ./gradlew generateConfIni
-  echo $MQ_CONNECTION
-  cat conf.ini
 
   docker config create CA.cert rootCA.pem
   docker config create client-server.cert client-server.pem
