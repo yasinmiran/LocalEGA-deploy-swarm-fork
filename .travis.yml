@@ -4,4 +4,6 @@ install:
   - ./download.sh
   - ./deploy.sh
 
-script: /gradlew test
+script:
+  - sleep 120
+  - /gradlew test
