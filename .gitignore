@@ -138,5 +138,6 @@ gradle-app.setting
 *.jks
 *.pub
 *.sec
+!dummy.sec
 *.pass
 conf.ini

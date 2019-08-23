@@ -16,7 +16,8 @@ public class GenerateConfIniTask extends LocalEGATask {
         String inboxS3SecretKey = System.getenv("INBOX_S3_SECRET_KEY");
         String vaultS3AccessKey = System.getenv("VAULT_S3_ACCESS_KEY");
         String vaultS3SecretKey = System.getenv("VAULT_S3_SECRET_KEY");
-        String postgresPassword = System.getenv("DB_LEGA_IN_PASSWORD");
+        String dbHost = System.getenv("DB_HOST");
+        String dbPassword = System.getenv("DB_LEGA_IN_PASSWORD");
         String mqConnection = System.getenv("MQ_CONNECTION");
         String confIni = IOUtils.resourceToString("/default.conf.ini", Charset.defaultCharset());
         confIni = confIni.replace("INBOX_S3_ACCESS_KEY", String.valueOf(inboxS3AccessKey));
@@ -24,7 +25,8 @@ public class GenerateConfIniTask extends LocalEGATask {
         confIni = confIni.replace("INBOX_S3_SECRET_KEY", String.valueOf(inboxS3SecretKey));
         confIni = confIni.replace("VAULT_S3_ACCESS_KEY", String.valueOf(vaultS3AccessKey));
         confIni = confIni.replace("VAULT_S3_SECRET_KEY", String.valueOf(vaultS3SecretKey));
-        confIni = confIni.replace("DB_LEGA_IN_PASSWORD", String.valueOf(postgresPassword));
+        confIni = confIni.replace("DB_HOST", String.valueOf(dbHost));
+        confIni = confIni.replace("DB_LEGA_IN_PASSWORD", String.valueOf(dbPassword));
         confIni = confIni.replace("MQ_CONNECTION", String.valueOf(mqConnection));
         File confIniFile = getProject().file("conf.ini");
         FileUtils.write(confIniFile, confIni, Charset.defaultCharset());
