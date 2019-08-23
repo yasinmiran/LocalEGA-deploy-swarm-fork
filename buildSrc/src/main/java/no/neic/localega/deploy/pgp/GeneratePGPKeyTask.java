@@ -91,12 +91,12 @@ public class GeneratePGPKeyTask extends LocalEGATask {
     }
 
     private byte[] armorByteArray(byte[] data) throws IOException {
-        try (ByteArrayOutputStream encOut = new ByteArrayOutputStream();
-             ArmoredOutputStream armorOut = new ArmoredOutputStream(encOut)) {
-            armorOut.write(data);
-            armorOut.flush();
-            return encOut.toByteArray();
-        }
+        ByteArrayOutputStream encOut = new ByteArrayOutputStream();
+        ArmoredOutputStream armorOut = new ArmoredOutputStream(encOut);
+        armorOut.write(data);
+        armorOut.flush();
+        armorOut.close();
+        return encOut.toByteArray();
     }
 
 }
