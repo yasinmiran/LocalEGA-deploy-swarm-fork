@@ -81,6 +81,7 @@ public class IngestionTest {
     }
 
     private void ingest(String mqConnectionString) throws IOException, TimeoutException, NoSuchAlgorithmException, KeyManagementException, URISyntaxException {
+        log.info("Publishing ingestion message to CentralEGA...");
         ConnectionFactory factory = new ConnectionFactory();
         factory.setUri(mqConnectionString);
         Connection connectionFactory = factory.newConnection();
@@ -94,10 +95,12 @@ public class IngestionTest {
 
 
         String stableId = "EGAF" + UUID.randomUUID().toString().replace("-", "");
+        String message = String.format("{\"user\":\"%s\",\"filepath\":\"data.raw.enc\",\"stable_id\":\"%s\"}", "dummy", stableId);
+        log.info(message);
         channel.basicPublish("localega.v1",
                 "files",
                 properties,
-                String.format("{\"user\":\"%s\",\"filepath\":\"data.raw.enc\",\"stable_id\":\"%s\"}", "dummy", stableId).getBytes());
+                message.getBytes());
 
         channel.close();
         connectionFactory.close();
