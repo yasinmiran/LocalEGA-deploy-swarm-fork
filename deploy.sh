@@ -15,8 +15,7 @@ if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then
   docker config rm conf.ini
   docker config rm ega.sec
   docker config rm ega.sec.pass
-  docker config rm ega2.sec
-  docker config rm ega2.sec.pass
+  docker config rm ega.pub
   docker config rm ega.shared.pass
 
   ./gradlew generateCertificate \
@@ -29,7 +28,6 @@ if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then
     --stacktrace
 
   ./gradlew generatePGPKey -Pid=ega -Ppassphrase=$PGP_PASSPHRASE
-  ./gradlew generatePGPKey -Pid=ega2 -Ppassphrase=$PGP_PASSPHRASE
   echo $LEGA_PASSWORD > ega.shared.pass
 
   ./gradlew generateConfIni
@@ -41,8 +39,7 @@ if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then
   docker config create conf.ini conf.ini
   docker config create ega.sec ega.sec
   docker config create ega.sec.pass ega.sec.pass
-  docker config create ega2.sec ega2.sec
-  docker config create ega2.sec.pass ega2.sec.pass
+  docker config create ega.pub ega.pub
   docker config create ega.shared.pass ega.shared.pass
 
   docker stack deploy LEGA --compose-file docker-stack.yml

@@ -96,22 +96,20 @@ services:
         window: 120s
     environment:
       - SPRING_PROFILES_ACTIVE=no-oss
-      - EGA_KEY_PATH=/etc/ega/pgp/ega.sec,/etc/ega/pgp/ega2.sec
-      - EGA_KEYPASS_PATH=/etc/ega/pgp/ega.sec.pass,/etc/ega/pgp/ega2.sec.pass
-      - EGA_SHAREDPASS_PATH=/etc/ega/pgp/ega.shared.pass
-      - EGA_PUBLICKEY_URL=
+      - EGA_KEY_PATH=/pgp/ega.sec
+      - EGA_KEYPASS_PATH=/pgp/ega.sec.pass
+      - EGA_SHAREDPASS_PATH=/pgp/ega.shared.pass
+      - EGA_PUBLICKEY_URL=/pgp/ega.pub
       - EGA_LEGACY_PATH=
     configs:
       - source: ega.sec
-        target: /etc/ega/pgp/ega.sec
+        target: /pgp/ega.sec
       - source: ega.sec.pass
-        target: /etc/ega/pgp/ega.sec.pass
-      - source: ega2.sec
-        target: /etc/ega/pgp/ega2.sec
-      - source: ega2.sec.pass
-        target: /etc/ega/pgp/ega2.sec.pass
+        target: /pgp/ega.sec.pass
+      - source: ega.pub
+        target: /pgp/ega.pub
       - source: ega.shared.pass
-        target: /etc/ega/pgp/ega.shared.pass
+        target: /pgp/ega.shared.pass
       - source: client-server.cert
         target: /etc/ega/ssl.cert
       - source: client-server.key
@@ -225,9 +223,7 @@ configs:
     external: true
   ega.sec.pass:
     external: true
-  ega2.sec:
-    external: true
-  ega2.sec.pass:
+  ega.pub:
     external: true
   ega.shared.pass:
     external: true
