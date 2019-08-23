@@ -6,4 +6,4 @@ install:
 
 script:
   - sleep 120
-  - /gradlew test
+  - ./gradlew test
