@@ -28,7 +28,7 @@ if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then
     --stacktrace
 
   ./gradlew generatePGPKey -Pid=ega -Ppassphrase=$PGP_PASSPHRASE
-  echo $LEGA_PASSWORD > ega.shared.pass
+  printf $LEGA_PASSWORD > ega.shared.pass
 
   ./gradlew generateConfIni
 
