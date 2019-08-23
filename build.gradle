@@ -34,6 +34,10 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
+test {
+    testLogging.showStandardStreams = true
+}
+
 import no.neic.localega.deploy.certificates.GenerateCertificateTask
 import no.neic.localega.deploy.pgp.GeneratePGPKeyTask
 import no.neic.localega.deploy.conf.GenerateConfIniTask
