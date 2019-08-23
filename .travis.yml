@@ -1,5 +1,7 @@
 language: generic
 
-script:
+install:
   - ./download.sh
   - ./deploy.sh
+
+script: /gradlew test
