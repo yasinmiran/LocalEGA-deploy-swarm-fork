@@ -89,6 +89,8 @@ services:
 
   keys:
     image: egarchive/lega-keyserver:release.v0.0.1
+    ports:
+      - "8080:8080"
     deploy:
       restart_policy:
         condition: on-failure
