@@ -50,6 +50,8 @@ services:
         condition: on-failure
         delay: 5s
         window: 120s
+    depends_on:
+      - db
     environment:
       - MINIO_ACCESS_KEY=${INBOX_S3_ACCESS_KEY}
       - MINIO_SECRET_KEY=${INBOX_S3_SECRET_KEY}
@@ -73,6 +75,8 @@ services:
         condition: on-failure
         delay: 5s
         window: 120s
+    depends_on:
+      - db
     environment:
       - MINIO_ACCESS_KEY=${VAULT_S3_ACCESS_KEY}
       - MINIO_SECRET_KEY=${VAULT_S3_SECRET_KEY}

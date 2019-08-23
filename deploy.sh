@@ -43,4 +43,6 @@ if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then
   docker config create ega.shared.pass ega.shared.pass
 
   docker stack deploy LEGA --compose-file docker-stack.yml
+
+  sleep 30
 fi
