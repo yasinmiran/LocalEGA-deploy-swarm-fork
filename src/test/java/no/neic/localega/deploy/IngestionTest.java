@@ -111,6 +111,7 @@ public class IngestionTest {
                         "              \"filepath\": \"%s\",\n" +
                         "             \"operation\": \"upload\",\n" +
                         "              \"filesize\": \"%s\",\n" +
+                        "            // \"oldpath\": \"\",\n" +
                         "    \"file_last_modified\": \"%s\",\n" +
                         "   \"encrypted_checksums\": [{ \"type\": \"sha256\", \"value\": \"%s\"}]\n" +
                         " }",
