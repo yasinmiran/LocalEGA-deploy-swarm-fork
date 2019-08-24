@@ -16,7 +16,6 @@ if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then
   docker config rm ega.sec.pass
   docker config rm ega.pub
   docker config rm ega.shared.pass
-  docker config rm info.yaml
 
   ./gradlew generateCertificate \
     -PsubjectString=C=NO,ST=Oslo,L=Oslo,O=UiO,OU=IFI,CN=nels-developers@googlegroups.com \
@@ -41,7 +40,6 @@ if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then
   docker config create ega.sec.pass ega.sec.pass
   docker config create ega.pub ega.pub
   docker config create ega.shared.pass ega.shared.pass
-  docker config create info.yaml info.yaml
 
   docker stack deploy LEGA --compose-file docker-stack.yml
 

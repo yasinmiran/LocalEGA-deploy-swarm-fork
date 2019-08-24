@@ -151,8 +151,6 @@ services:
         mode: 0600
       - source: CA.cert
         target: /etc/ega/CA.cert
-      - source: info.yaml
-        target: /etc/ega/info.yaml
     user: lega
     entrypoint: ["ega-verify"]
 
@@ -178,8 +176,6 @@ services:
         mode: 0600
       - source: CA.cert
         target: /etc/ega/CA.cert
-      - source: info.yaml
-        target: /etc/ega/info.yaml
     user: lega
     entrypoint: ["ega-finalize"]
 
@@ -207,8 +203,6 @@ services:
         mode: 0600
       - source: CA.cert
         target: /etc/ega/CA.cert
-      - source: info.yaml
-        target: /etc/ega/info.yaml
     volumes:
       - "$INBOX_LOCATION:/ega/inbox"
     user: lega
@@ -236,6 +230,4 @@ configs:
   ega.pub:
     external: true
   ega.shared.pass:
-    external: true
-  info.yaml:
     external: true
