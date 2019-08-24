@@ -47,7 +47,7 @@ public class IngestionTest {
     public void setup() throws IOException, PGPException {
         long fileSize = 1024 * 1024 * 10;
         log.info("Generating " + fileSize + " bytes file to submit...");
-        rawFile = Files.createTempFile(UUID.randomUUID().toString(), ".raw").toFile();
+        rawFile = new File(UUID.randomUUID().toString() + ".raw");
         RandomAccessFile randomAccessFile = new RandomAccessFile(rawFile, "rw");
         randomAccessFile.setLength(fileSize);
         randomAccessFile.close();
@@ -55,7 +55,7 @@ public class IngestionTest {
         log.info("Checksum: " + Hex.encodeHexString(bytes));
 
         log.info("Encrypting the file with Crypt4GH...");
-        encFile = Files.createTempFile(rawFile.getName(), ".enc").toFile();
+        encFile = new File(rawFile.getName() + ".enc");
         byte[] digest = DigestUtils.sha256(FileUtils.openInputStream(rawFile));
         String key = FileUtils.readFileToString(new File("ega.pub"), Charset.defaultCharset());
         FileOutputStream fileOutputStream = new FileOutputStream(encFile);
@@ -84,7 +84,7 @@ public class IngestionTest {
         ssh.authPublickey("dummy", new File(IOUtils.resourceToURL("/dummy.sec").toURI()).getAbsolutePath());
         log.info("Uploading a file...");
         SFTPClient client = ssh.newSFTPClient();
-        client.put(encFile.getAbsolutePath(), "data.raw.enc");
+        client.put(encFile.getAbsolutePath(), encFile.getName());
         ssh.close();
     }
 
@@ -103,7 +103,7 @@ public class IngestionTest {
 
 
         String stableId = "EGAF" + UUID.randomUUID().toString().replace("-", "");
-        String message = String.format("{\"user\":\"%s\",\"filepath\":\"data.raw.enc\",\"stable_id\":\"%s\"}", "dummy", stableId);
+        String message = String.format("{\"user\":\"%s\",\"filepath\":\"%s\",\"stable_id\":\"%s\"}", "dummy", encFile.getName(), stableId);
         log.info(message);
         channel.basicPublish("localega.v1",
                 "files",
