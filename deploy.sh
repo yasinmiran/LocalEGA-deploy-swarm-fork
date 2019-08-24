@@ -10,7 +10,6 @@ if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then
   docker config rm CA.cert
   docker config rm client-server.cert
   docker config rm client-server.key
-  docker config rm db.entrypoint.sh
   docker config rm conf.ini
   docker config rm ega.sec
   docker config rm ega.sec.pass
@@ -34,7 +33,6 @@ if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then
   docker config create CA.cert rootCA.pem
   docker config create client-server.cert client-server.pem
   docker config create client-server.key client-server-key.pem
-  docker config create db.entrypoint.sh ./db/entrypoint.sh
   docker config create conf.ini conf.ini
   docker config create ega.sec ega.sec
   docker config create ega.sec.pass ega.sec.pass
