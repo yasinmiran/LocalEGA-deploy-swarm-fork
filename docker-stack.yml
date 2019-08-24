@@ -191,9 +191,6 @@ services:
       - db
       - inbox-s3
       - vault-s3
-    environment:
-      - S3_ACCESS_KEY=${VAULT_S3_ACCESS_KEY}
-      - S3_SECRET_KEY=${VAULT_S3_SECRET_KEY}
     configs:
       - source: conf.ini
         target: /etc/ega/conf.ini
@@ -206,6 +203,8 @@ services:
         mode: 0600
       - source: CA.cert
         target: /etc/ega/CA.cert
+    volumes:
+      - "$INBOX_LOCATION:/ega/inbox"
     user: lega
     entrypoint: ["ega-ingest"]
 
