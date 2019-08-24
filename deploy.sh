@@ -4,7 +4,6 @@ if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then
   docker stack rm LEGA
 
   sleep 30
-  docker volume rm LEGA_inbox_s3
   docker volume rm LEGA_vault_s3
   docker volume rm LEGA_db
 
