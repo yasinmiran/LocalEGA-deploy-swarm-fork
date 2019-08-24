@@ -63,7 +63,7 @@ services:
       - source: CA.cert
         target: /root/.minio/CAs/LocalEGA.crt
     volumes:
-      - inbox_s3:/data
+      - "$INBOX_LOCATION:/data"
     command: server /data
 
   vault-s3:
@@ -210,7 +210,6 @@ services:
     entrypoint: ["ega-ingest"]
 
 volumes:
-  inbox_s3:
   vault_s3:
   db:
 
