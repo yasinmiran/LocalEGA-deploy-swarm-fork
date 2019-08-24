@@ -26,6 +26,7 @@ import java.io.RandomAccessFile;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.DriverManager;
@@ -40,9 +41,7 @@ import java.util.concurrent.TimeoutException;
 public class IngestionTest {
 
     private File rawFile;
-    private String rawChecksum;
     private File encFile;
-    private String encChecksum;
 
     @Before
     public void setup() throws IOException, PGPException {
@@ -52,24 +51,21 @@ public class IngestionTest {
         RandomAccessFile randomAccessFile = new RandomAccessFile(rawFile, "rw");
         randomAccessFile.setLength(fileSize);
         randomAccessFile.close();
-        byte[] rawDigest = DigestUtils.sha256(FileUtils.openInputStream(rawFile));
-        rawChecksum = Hex.encodeHexString(rawDigest);
-        log.info("Raw file checksum: " + rawChecksum);
+        byte[] bytes = DigestUtils.sha256(FileUtils.openInputStream(rawFile));
+        log.info("Checksum: " + Hex.encodeHexString(bytes));
 
         log.info("Encrypting the file with Crypt4GH...");
         encFile = new File(rawFile.getName() + ".enc");
+        byte[] digest = DigestUtils.sha256(FileUtils.openInputStream(rawFile));
         String key = FileUtils.readFileToString(new File("ega.pub"), Charset.defaultCharset());
         FileOutputStream fileOutputStream = new FileOutputStream(encFile);
-        Crypt4GHOutputStream crypt4GHOutputStream = new Crypt4GHOutputStream(fileOutputStream, key, rawDigest);
+        Crypt4GHOutputStream crypt4GHOutputStream = new Crypt4GHOutputStream(fileOutputStream, key, digest);
         String sessionKey = Hex.encodeHexString(crypt4GHOutputStream.getSessionKeyBytes());
         String iv = Hex.encodeHexString(crypt4GHOutputStream.getIvBytes());
         log.info("Session key: " + sessionKey);
         log.info("IV: " + iv);
         FileUtils.copyFile(rawFile, crypt4GHOutputStream);
         crypt4GHOutputStream.close();
-        byte[] encDigest = DigestUtils.sha256(FileUtils.openInputStream(encFile));
-        encChecksum = Hex.encodeHexString(encDigest);
-        log.info("Encrypted file checksum: " + encChecksum);
     }
 
     @Test
@@ -106,16 +102,8 @@ public class IngestionTest {
                 .build();
 
 
-        String message = String.format("{\n" +
-                        "                  \"user\": \"%s\",\n" +
-                        "              \"filepath\": \"%s\",\n" +
-                        "             \"operation\": \"upload\",\n" +
-                        "              \"filesize\": \"%s\",\n" +
-                        "            // \"oldpath\": \"\",\n" +
-                        "    \"file_last_modified\": \"%s\",\n" +
-                        "   \"encrypted_checksums\": [{ \"type\": \"sha256\", \"value\": \"%s\"}]\n" +
-                        " }",
-                "dummy", encFile.getName(), FileUtils.sizeOf(encFile), encFile.lastModified(), encChecksum);
+        String stableId = "EGAF" + UUID.randomUUID().toString().replace("-", "");
+        String message = String.format("{\"user\":\"%s\",\"filepath\":\"%s\",\"stable_id\":\"%s\"}", "dummy", encFile.getName(), stableId);
         log.info(message);
         channel.basicPublish("localega.v1",
                 "files",
