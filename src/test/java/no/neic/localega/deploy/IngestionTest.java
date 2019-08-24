@@ -15,6 +15,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.openpgp.PGPException;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,6 +29,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
@@ -41,7 +47,7 @@ public class IngestionTest {
     public void setup() throws IOException, PGPException {
         long fileSize = 1024 * 1024 * 10;
         log.info("Generating " + fileSize + " bytes file to submit...");
-        rawFile = Files.createTempFile("data", ".raw").toFile();
+        rawFile = Files.createTempFile(UUID.randomUUID().toString(), ".raw").toFile();
         RandomAccessFile randomAccessFile = new RandomAccessFile(rawFile, "rw");
         randomAccessFile.setLength(fileSize);
         randomAccessFile.close();
@@ -63,16 +69,17 @@ public class IngestionTest {
     }
 
     @Test
-    public void test() throws IOException, URISyntaxException, NoSuchAlgorithmException, TimeoutException, KeyManagementException {
+    public void test() throws IOException, URISyntaxException, NoSuchAlgorithmException, TimeoutException, KeyManagementException, SQLException {
         upload(System.getenv("TRYGGVE_IP_ADDRESS"));
         ingest(System.getenv("CEGA_CONNECTION"));
+        verify(System.getenv("TSD_IP_ADDRESS"));
     }
 
-    private void upload(String host) throws IOException, URISyntaxException {
-        log.info("Connecting to " + host);
+    private void upload(String inboxHost) throws IOException, URISyntaxException {
+        log.info("Connecting to " + inboxHost);
         SSHClient ssh = new SSHClient();
         ssh.addHostKeyVerifier(new PromiscuousVerifier());
-        ssh.connect(host, 2222);
+        ssh.connect(inboxHost, 2222);
         ssh.authPublickey("dummy", new File(IOUtils.resourceToURL("/dummy.sec").toURI()).getAbsolutePath());
         log.info("Uploading a file...");
         SFTPClient client = ssh.newSFTPClient();
@@ -104,6 +111,36 @@ public class IngestionTest {
 
         channel.close();
         connectionFactory.close();
+    }
+
+    private void verify(String dbHost) throws SQLException {
+        log.info("Starting verification...");
+        String port = "5432";
+        String db = "lega";
+        String url = String.format("jdbc:postgresql://%s:%s/%s", dbHost, port, db);
+        Properties props = new Properties();
+        props.setProperty("user", "lega_in");
+        props.setProperty("password", System.getenv("DB_LEGA_IN_PASSWORD"));
+        props.setProperty("ssl", "true");
+        props.setProperty("sslmode", "require");
+        props.setProperty("application_name", "LocalEGA");
+        props.setProperty("sslrootcert", new File("rootCA.pem").getAbsolutePath());
+        props.setProperty("sslcert", new File("client-server.pem").getAbsolutePath());
+        props.setProperty("sslkey", new File("client-server-key.der").getAbsolutePath());
+        try {
+            java.sql.Connection conn = DriverManager.getConnection(url, props);
+            String sql = "select status from local_ega.files where inbox_path = ?";
+            PreparedStatement statement = conn.prepareStatement(sql);
+            statement.setString(1, encFile.getName());
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.wasNull() || !resultSet.next()) {
+                Assert.fail("Verification failed");
+            }
+        } catch (SQLException e) {
+            log.error(e.getMessage(), e);
+            throw e;
+        }
+        log.info("Verification completed successfully");
     }
 
     @After
