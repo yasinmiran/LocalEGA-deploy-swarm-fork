@@ -69,9 +69,10 @@ public class IngestionTest {
     }
 
     @Test
-    public void test() throws IOException, URISyntaxException, NoSuchAlgorithmException, TimeoutException, KeyManagementException, SQLException {
+    public void test() throws IOException, URISyntaxException, NoSuchAlgorithmException, TimeoutException, KeyManagementException, SQLException, InterruptedException {
         upload(System.getenv("TRYGGVE_IP_ADDRESS"));
         ingest(System.getenv("CEGA_CONNECTION"));
+        Thread.sleep(10000); // wait for ingestion and verification to be finished
         verify(System.getenv("TSD_IP_ADDRESS"));
     }
 
