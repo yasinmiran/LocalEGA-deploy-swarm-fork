@@ -130,7 +130,7 @@ public class IngestionTest {
         props.setProperty("sslkey", new File("client-server-key.der").getAbsolutePath());
         try {
             java.sql.Connection conn = DriverManager.getConnection(url, props);
-            String sql = "select status from local_ega.files where inbox_path = ?";
+            String sql = "select status from local_ega.files where status = 'COMPLETED' AND inbox_path = ?";
             PreparedStatement statement = conn.prepareStatement(sql);
             statement.setString(1, encFile.getName());
             ResultSet resultSet = statement.executeQuery();
