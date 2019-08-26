@@ -144,3 +144,5 @@ gradlew.bat
 !dummy.sec
 *.pass
 conf.ini
+
+docker-stack.yml
