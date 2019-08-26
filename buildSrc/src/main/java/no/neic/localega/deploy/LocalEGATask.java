@@ -14,8 +14,6 @@ import org.gradle.api.DefaultTask;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.attribute.PosixFilePermission;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -23,8 +21,6 @@ import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
-import java.util.HashSet;
-import java.util.Set;
 
 @Slf4j
 public abstract class LocalEGATask extends DefaultTask {
@@ -94,20 +90,12 @@ public abstract class LocalEGATask extends DefaultTask {
 
     protected void writePrivateKeyPEM(KeyPair keyPair, File file) throws IOException {
         writeBCObject(keyPair.getPrivate(), file);
-        Set<PosixFilePermission> perms = new HashSet<>();
-        perms.add(PosixFilePermission.OWNER_READ);
-        perms.add(PosixFilePermission.OWNER_WRITE);
-        Files.setPosixFilePermissions(file.toPath(), perms);
     }
 
     protected void writePrivateKeyDER(KeyPair keyPair, File file) throws IOException {
         try (FileOutputStream fos = new FileOutputStream(file)) {
             fos.write(keyPair.getPrivate().getEncoded());
         }
-        Set<PosixFilePermission> perms = new HashSet<>();
-        perms.add(PosixFilePermission.OWNER_READ);
-        perms.add(PosixFilePermission.OWNER_WRITE);
-        Files.setPosixFilePermissions(file.toPath(), perms);
     }
 
     protected void writeCertificate(X509Certificate certificate, File file) throws IOException {

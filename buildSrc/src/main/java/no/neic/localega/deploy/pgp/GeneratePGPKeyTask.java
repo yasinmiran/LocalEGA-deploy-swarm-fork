@@ -22,12 +22,8 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.attribute.PosixFilePermission;
 import java.security.SecureRandom;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 public class GeneratePGPKeyTask extends LocalEGATask {
 
@@ -61,10 +57,6 @@ public class GeneratePGPKeyTask extends LocalEGATask {
 
         File secFile = getProject().file(id + ".sec");
         FileUtils.write(secFile, new String(armoredSecretBytes), Charset.defaultCharset());
-        Set<PosixFilePermission> perms = new HashSet<>();
-        perms.add(PosixFilePermission.OWNER_READ);
-        perms.add(PosixFilePermission.OWNER_WRITE);
-        Files.setPosixFilePermissions(secFile.toPath(), perms);
     }
 
     private PGPKeyRingGenerator createPGPKeyRingGenerator(String id, char[] passphrase) throws Exception {
