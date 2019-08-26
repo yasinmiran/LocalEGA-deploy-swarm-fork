@@ -130,8 +130,7 @@ services:
     depends_on:
       - db
       - keys
-      - s3
-      - mq
+      - vault-s3
     environment:
       - LEGA_PASSWORD
       - S3_ACCESS_KEY=${VAULT_S3_ACCESS_KEY}
@@ -159,7 +158,6 @@ services:
         delay: 5s
         window: 120s
     depends_on:
-      - mq
       - db
     configs:
       - source: conf.ini
@@ -184,7 +182,6 @@ services:
         delay: 5s
         window: 120s
     depends_on:
-      - mq
       - db
       - inbox-s3
       - vault-s3
