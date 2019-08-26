@@ -1,5 +1,10 @@
 language: generic
 
+cache:
+  directories:
+    - $HOME/.m2
+    - $HOME/.gradle
+
 install:
   - ./download.sh
   - ./deploy.sh
