@@ -7,6 +7,7 @@ cache:
 
 install:
   - ./download.sh
+  - ./cleanup.sh
   - ./deploy.sh
 
 script:
