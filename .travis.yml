@@ -6,7 +6,7 @@ install:
 
 script:
   - ./wait.sh
-  - ./gradlew test
+  - gradle test
 
 notifications:
   slack:

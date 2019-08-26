@@ -16,7 +16,7 @@ if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then
   docker config rm ega.pub
   docker config rm ega.shared.pass
 
-  ./gradlew generateCertificate \
+  gradle generateCertificate \
     -PsubjectString=C=NO,ST=Oslo,L=Oslo,O=UiO,OU=IFI,CN=nels-developers@googlegroups.com \
     -PfileName=client-server \
     -PipAddress=$TSD_IP_ADDRESS \
@@ -25,10 +25,10 @@ if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then
     -ProotCAKey=rootCA-key.pem \
     --stacktrace
 
-  ./gradlew generatePGPKey -Pid=ega -Ppassphrase=$PGP_PASSPHRASE
+  gradle generatePGPKey -Pid=ega -Ppassphrase=$PGP_PASSPHRASE
   printf $LEGA_PASSWORD > ega.shared.pass
 
-  ./gradlew generateConfIni
+  gradle generateConfIni
 
   docker config create CA.cert rootCA.pem
   docker config create client-server.cert client-server.pem
