@@ -130,15 +130,6 @@ services:
     configs:
       - source: conf.ini
         target: /etc/ega/conf.ini
-      - source: client-server.cert
-        target: /etc/ega/ssl.cert
-      - source: client-server.key
-        target: /etc/ega/ssl.key
-        uid: '1000'
-        gid: '1000'
-        mode: 0600
-      - source: CA.cert
-        target: /etc/ega/CA.cert
     user: lega
     entrypoint: ["ega-verify"]
 
@@ -152,15 +143,6 @@ services:
     configs:
       - source: conf.ini
         target: /etc/ega/conf.ini
-      - source: client-server.cert
-        target: /etc/ega/ssl.cert
-      - source: client-server.key
-        target: /etc/ega/ssl.key
-        uid: '1000'
-        gid: '1000'
-        mode: 0600
-      - source: CA.cert
-        target: /etc/ega/CA.cert
     user: lega
     entrypoint: ["ega-finalize"]
 
@@ -174,15 +156,6 @@ services:
     configs:
       - source: conf.ini
         target: /etc/ega/conf.ini
-      - source: client-server.cert
-        target: /etc/ega/ssl.cert
-      - source: client-server.key
-        target: /etc/ega/ssl.key
-        uid: '1000'
-        gid: '1000'
-        mode: 0600
-      - source: CA.cert
-        target: /etc/ega/CA.cert
     volumes:
       - "$INBOX_LOCATION:/ega/inbox"
     user: lega
