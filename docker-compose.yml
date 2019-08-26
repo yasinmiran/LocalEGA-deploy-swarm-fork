@@ -47,8 +47,6 @@ services:
         condition: on-failure
         delay: 5s
         window: 120s
-    depends_on:
-      - db
     environment:
       - MINIO_ACCESS_KEY=${INBOX_S3_ACCESS_KEY}
       - MINIO_SECRET_KEY=${INBOX_S3_SECRET_KEY}
@@ -72,8 +70,6 @@ services:
         condition: on-failure
         delay: 5s
         window: 120s
-    depends_on:
-      - db
     environment:
       - MINIO_ACCESS_KEY=${VAULT_S3_ACCESS_KEY}
       - MINIO_SECRET_KEY=${VAULT_S3_SECRET_KEY}
@@ -127,10 +123,6 @@ services:
         condition: on-failure
         delay: 5s
         window: 120s
-    depends_on:
-      - db
-      - keys
-      - vault-s3
     environment:
       - LEGA_PASSWORD
       - S3_ACCESS_KEY=${VAULT_S3_ACCESS_KEY}
@@ -157,8 +149,6 @@ services:
         condition: on-failure
         delay: 5s
         window: 120s
-    depends_on:
-      - db
     configs:
       - source: conf.ini
         target: /etc/ega/conf.ini
@@ -181,10 +171,6 @@ services:
         condition: on-failure
         delay: 5s
         window: 120s
-    depends_on:
-      - db
-      - inbox-s3
-      - vault-s3
     configs:
       - source: conf.ini
         target: /etc/ega/conf.ini
