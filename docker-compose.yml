@@ -3,7 +3,7 @@ version: '3.3'
 services:
 
   db:
-    image: egarchive/lega-db:latest
+    image: nbisweden/ega-db:m7-v2
     ports:
       - "5432:5432"
     deploy:
