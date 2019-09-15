@@ -39,7 +39,7 @@ services:
       - db:/ega/data
 
   inbox-s3:
-    image: minio/minio:RELEASE.2019-02-12T21-58-47Z
+    image: minio/minio:latest
     ports:
       - "9001:9000"
     deploy:
@@ -62,7 +62,7 @@ services:
     command: server /data
 
   vault-s3:
-    image: minio/minio:RELEASE.2019-02-12T21-58-47Z
+    image: minio/minio:latest
     ports:
       - "9000:9000"
     deploy:
