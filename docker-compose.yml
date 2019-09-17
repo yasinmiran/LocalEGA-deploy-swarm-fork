@@ -174,7 +174,7 @@ services:
       - source: CA.cert
         target: /etc/ega/CA.cert
     volumes:
-      - "$INBOX_LOCATION:$INBOX_LOCATION"
+      - "$INBOX_LOCATION/$INBOX_BUCKET:/ega/inbox"
     user: lega
     entrypoint: ["ega-ingest"]
 
