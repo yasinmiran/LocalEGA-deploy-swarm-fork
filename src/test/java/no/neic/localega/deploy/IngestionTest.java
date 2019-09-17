@@ -69,10 +69,14 @@ public class IngestionTest {
 
     @Test
     public void test() throws IOException, URISyntaxException, NoSuchAlgorithmException, TimeoutException, KeyManagementException, SQLException, InterruptedException, XmlPullParserException, InvalidKeyException, InvalidPortException, InvalidArgumentException, ErrorResponseException, NoResponseException, InvalidBucketNameException, InsufficientDataException, InvalidEndpointException, InternalException {
-        upload(System.getenv("S3_ENDPOINT"), System.getenv("MINIO_ACCESS_KEY"), System.getenv("MINIO_SECRET_KEY"));
-        ingest(System.getenv("CEGA_CONNECTION"));
-        Thread.sleep(10000); // wait for ingestion and verification to be finished
-        verify(System.getenv("TSD_IP_ADDRESS"));
+        try {
+            upload(System.getenv("S3_ENDPOINT"), System.getenv("MINIO_ACCESS_KEY"), System.getenv("MINIO_SECRET_KEY"));
+            ingest(System.getenv("CEGA_CONNECTION"));
+            Thread.sleep(10000); // wait for ingestion and verification to be finished
+            verify(System.getenv("TSD_IP_ADDRESS"));
+        } catch (Throwable t) {
+            log.error(t.getMessage(), t);
+        }
     }
 
     private void upload(String s3Endpoint, String accessKey, String secretKey) throws IOException, InvalidPortException, InvalidEndpointException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InvalidArgumentException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException {
