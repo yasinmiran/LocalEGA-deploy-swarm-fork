@@ -12,14 +12,14 @@ public class GenerateConfIniTask extends LocalEGATask {
 
     @TaskAction
     public void run() throws Exception {
-        String vaultS3AccessKey = System.getenv("VAULT_S3_ACCESS_KEY");
-        String vaultS3SecretKey = System.getenv("VAULT_S3_SECRET_KEY");
+        String minioAccessKey = System.getenv("MINIO_ACCESS_KEY");
+        String minioSecretKey = System.getenv("MINIO_SECRET_KEY");
         String dbHost = System.getenv("DB_HOST");
         String dbPassword = System.getenv("DB_LEGA_IN_PASSWORD");
         String mqConnection = System.getenv("MQ_CONNECTION");
         String confIni = IOUtils.resourceToString("/default.conf.ini", Charset.defaultCharset());
-        confIni = confIni.replace("VAULT_S3_ACCESS_KEY", String.valueOf(vaultS3AccessKey));
-        confIni = confIni.replace("VAULT_S3_SECRET_KEY", String.valueOf(vaultS3SecretKey));
+        confIni = confIni.replace("MINIO_ACCESS_KEY", String.valueOf(minioAccessKey));
+        confIni = confIni.replace("MINIO_SECRET_KEY", String.valueOf(minioSecretKey));
         confIni = confIni.replace("DB_HOST", String.valueOf(dbHost));
         confIni = confIni.replace("DB_LEGA_IN_PASSWORD", String.valueOf(dbPassword));
         confIni = confIni.replace("MQ_CONNECTION", String.valueOf(mqConnection));

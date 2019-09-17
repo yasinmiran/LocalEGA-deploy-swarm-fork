@@ -4,20 +4,19 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import io.minio.MinioClient;
+import io.minio.errors.*;
 import lombok.extern.slf4j.Slf4j;
-import net.schmizz.sshj.SSHClient;
-import net.schmizz.sshj.sftp.SFTPClient;
-import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
 import no.uio.ifi.crypt4gh.stream.Crypt4GHOutputStream;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.bouncycastle.openpgp.PGPException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -26,7 +25,7 @@ import java.io.RandomAccessFile;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
+import java.security.InvalidKeyException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.DriverManager;
@@ -69,23 +68,18 @@ public class IngestionTest {
     }
 
     @Test
-    public void test() throws IOException, URISyntaxException, NoSuchAlgorithmException, TimeoutException, KeyManagementException, SQLException, InterruptedException {
-        upload(System.getenv("TRYGGVE_IP_ADDRESS"));
+    public void test() throws IOException, URISyntaxException, NoSuchAlgorithmException, TimeoutException, KeyManagementException, SQLException, InterruptedException, XmlPullParserException, InvalidKeyException, InvalidPortException, InvalidArgumentException, ErrorResponseException, NoResponseException, InvalidBucketNameException, InsufficientDataException, InvalidEndpointException, InternalException {
+        upload(System.getenv("S3_ENDPOINT"), System.getenv("MINIO_ACCESS_KEY"), System.getenv("MINIO_SECRET_KEY"));
         ingest(System.getenv("CEGA_CONNECTION"));
         Thread.sleep(10000); // wait for ingestion and verification to be finished
         verify(System.getenv("TSD_IP_ADDRESS"));
     }
 
-    private void upload(String inboxHost) throws IOException, URISyntaxException {
-        log.info("Connecting to " + inboxHost);
-        SSHClient ssh = new SSHClient();
-        ssh.addHostKeyVerifier(new PromiscuousVerifier());
-        ssh.connect(inboxHost, 2222);
-        ssh.authPublickey("dummy", new File(IOUtils.resourceToURL("/dummy.sec").toURI()).getAbsolutePath());
+    private void upload(String s3Endpoint, String accessKey, String secretKey) throws IOException, InvalidPortException, InvalidEndpointException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InvalidArgumentException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException {
+        log.info("Connecting to " + s3Endpoint);
+        MinioClient minioClient = new MinioClient(s3Endpoint, accessKey, secretKey, false);
         log.info("Uploading a file...");
-        SFTPClient client = ssh.newSFTPClient();
-        client.put(encFile.getAbsolutePath(), encFile.getName());
-        ssh.close();
+        minioClient.putObject("inbox", "dummy/" + encFile.getName(), encFile.getAbsolutePath());
     }
 
     private void ingest(String mqConnectionString) throws IOException, TimeoutException, NoSuchAlgorithmException, KeyManagementException, URISyntaxException {
