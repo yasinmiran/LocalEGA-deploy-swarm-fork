@@ -134,7 +134,7 @@ public class GenerateCertificateTask extends LocalEGATask {
             }
             List<GeneralName> generalNameList = new ArrayList<>();
             if (StringUtils.isNotEmpty(dnsName)) {
-                generalNameList.add(new GeneralName(GeneralName.dNSName, ipAddress));
+                generalNameList.add(new GeneralName(GeneralName.dNSName, dnsName));
             }
             if (StringUtils.isNotEmpty(ipAddress)) {
                 generalNameList.add(new GeneralName(GeneralName.iPAddress, ipAddress));
