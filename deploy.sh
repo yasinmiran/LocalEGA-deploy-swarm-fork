@@ -10,8 +10,7 @@ if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then
     -ProotCAKey=rootCA-key.pem \
     --stacktrace
 
-  gradle generatePGPKey -Pid=ega -Ppassphrase=$PGP_PASSPHRASE
-  printf $LEGA_PASSWORD > ega.shared.pass
+  gradle generateKey -Pid=ega -Ppassword=$PGP_PASSPHRASE
 
   gradle generateConfIni
 
@@ -22,7 +21,6 @@ if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then
   docker config create ega.sec ega.sec
   docker config create ega.sec.pass ega.sec.pass
   docker config create ega.pub ega.pub
-  docker config create ega.shared.pass ega.shared.pass
 
   docker-compose config > docker-stack.yml
   docker stack deploy LEGA -c docker-stack.yml

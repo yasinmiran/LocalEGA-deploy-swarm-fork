@@ -2,7 +2,6 @@ package no.neic.localega.deploy.certificates;
 
 import no.neic.localega.deploy.LocalEGATask;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.sshd.common.config.keys.KeyUtils;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -53,7 +52,7 @@ public class GenerateCertificateTask extends LocalEGATask {
     }
 
     private void generateRootCA(String subjectString) throws IOException, GeneralSecurityException, OperatorCreationException {
-        KeyPair keyPair = KeyUtils.generateKeyPair("ssh-rsa", 2048);
+        KeyPair keyPair = generateKeyPair();
 
         RDN[] rdns = BCStyle.INSTANCE.fromString(subjectString);
         X500NameBuilder x500NameBuilder = new X500NameBuilder(BCStyle.INSTANCE);
@@ -94,7 +93,7 @@ public class GenerateCertificateTask extends LocalEGATask {
                                      KeyPair rootKeyPair,
                                      String jksPassword,
                                      String name) throws Exception {
-        KeyPair keyPair = KeyUtils.generateKeyPair("ssh-rsa", 2048);
+        KeyPair keyPair = generateKeyPair();
 
         RDN[] rdns = BCStyle.INSTANCE.fromString(subjectString);
         X500NameBuilder x500NameBuilder = new X500NameBuilder(BCStyle.INSTANCE);

@@ -1,30 +1,25 @@
-plugins {
-    id 'java'
-}
+apply plugin: 'java'
+apply plugin: 'maven'
 
 group 'no.neic.localega'
 version '1.0-SNAPSHOT'
 
-sourceCompatibility = 1.8
-
 repositories {
     mavenCentral()
-    maven {
-        url 'https://jitpack.io'
-    }
+    mavenLocal()
+    jcenter()
 }
 
 dependencies {
     testCompile "junit:junit:4.12"
     testCompile "org.bouncycastle:bcpg-jdk15on:1.59"
     testCompile "org.bouncycastle:bcpkix-jdk15on:1.59"
+    testCompile "no.uio.ifi:crypt4gh:2.1.0"
     testCompile "commons-io:commons-io:2.5"
     testCompile "commons-codec:commons-codec:1.11"
     testCompile "org.apache.commons:commons-exec:1.3"
     testCompile "org.apache.commons:commons-collections4:4.2"
     testCompile "org.apache.commons:commons-lang3:3.9"
-    testCompile "org.apache.sshd:sshd-core:1.7.0"
-    testCompile "net.i2p.crypto:eddsa:0.3.0"
     testCompile "com.hierynomus:sshj:0.22.0"
     testCompile "com.rabbitmq:amqp-client:5.1.1"
     testCompile "io.minio:minio:4.0.2"
@@ -34,15 +29,10 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.6'
 }
 
-test {
-    testLogging.showStandardStreams = true
-}
-
-
 import no.neic.localega.deploy.certificates.GenerateCertificateTask
 import no.neic.localega.deploy.conf.GenerateConfIniTask
 import no.neic.localega.deploy.mq.IngestTask
-import no.neic.localega.deploy.pgp.GeneratePGPKeyTask
+import no.neic.localega.deploy.keys.GenerateKeyTask
 
 task generateCertificate(type: GenerateCertificateTask) {
     description = 'Generates client/server certs either based on supplied root CA or along with generating new root CA.\n' +
@@ -51,10 +41,10 @@ task generateCertificate(type: GenerateCertificateTask) {
             'gradle generateCertificate -PsubjectString=C=NO,ST=Oslo,L=Oslo,O=UiO,OU=IFI,CN=nels-developers@googlegroups.com -PfileName=localhost -PipAddress=127.0.0.1 -Ptype=SERVER -ProotCA=rootCA.pem -ProotCAKey=rootCA-key.pem'
 }
 
-task generatePGPKey(type: GeneratePGPKeyTask) {
-    description = 'Generates PGP key, stores passphrse to file.\n' +
+task generateKey(type: GenerateKeyTask) {
+    description = 'Generates Crypt4GH key, stores password to file.\n' +
             'Sample usage:\n' +
-            'gradle generatePGPKey -Pid=ega -Ppassphrase=some_really_strong_password'
+            'gradle generateKey -Pid=ega -Ppassword=some_really_strong_password'
 }
 
 task generateConfIni(type: GenerateConfIniTask) {

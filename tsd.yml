@@ -38,19 +38,6 @@ services:
     volumes:
       - db:/ega/data
 
-  s3mq:
-    image: uiobmi/s3mq:latest
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        window: 120s
-    environment:
-      - MQ_CONNECTION
-      - INBOX_LOCATION
-    volumes:
-      - "$INBOX_LOCATION:$INBOX_LOCATION"
-
   vault-s3:
     image: minio/minio:latest
     ports:
@@ -74,37 +61,29 @@ services:
       - vault_s3:/data
     command: server /data
 
-  keys:
-    image: egarchive/lega-keyserver:release.v0.0.1
-    ports:
-      - "8080:8080"
+  ingest:
+    image: egarchive/lega-base:latest
     deploy:
       restart_policy:
         condition: on-failure
         delay: 5s
         window: 120s
-    environment:
-      - SPRING_PROFILES_ACTIVE=no-oss
-      - EGA_KEY_PATH=/pgp/ega.sec
-      - EGA_KEYPASS_PATH=/pgp/ega.sec.pass
-      - EGA_SHAREDPASS_PATH=/pgp/ega.shared.pass
-      - EGA_PUBLICKEY_URL=/pgp/ega.pub
-      - EGA_LEGACY_PATH=
     configs:
-      - source: ega.sec
-        target: /pgp/ega.sec
-      - source: ega.sec.pass
-        target: /pgp/ega.sec.pass
-      - source: ega.pub
-        target: /pgp/ega.pub
-      - source: ega.shared.pass
-        target: /pgp/ega.shared.pass
+      - source: conf.ini
+        target: /etc/ega/conf.ini
       - source: client-server.cert
         target: /etc/ega/ssl.cert
       - source: client-server.key
         target: /etc/ega/ssl.key
+        uid: '1000'
+        gid: '1000'
+        mode: 0600
       - source: CA.cert
         target: /etc/ega/CA.cert
+    volumes:
+      - "$INBOX_LOCATION/$INBOX_BUCKET:/ega/inbox"
+    user: lega
+    entrypoint: ["ega-ingest"]
 
   verify:
     image: egarchive/lega-base:latest
@@ -154,30 +133,6 @@ services:
     user: lega
     entrypoint: ["ega-finalize"]
 
-  ingest:
-    image: egarchive/lega-base:latest
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        window: 120s
-    configs:
-      - source: conf.ini
-        target: /etc/ega/conf.ini
-      - source: client-server.cert
-        target: /etc/ega/ssl.cert
-      - source: client-server.key
-        target: /etc/ega/ssl.key
-        uid: '1000'
-        gid: '1000'
-        mode: 0600
-      - source: CA.cert
-        target: /etc/ega/CA.cert
-    volumes:
-      - "$INBOX_LOCATION/$INBOX_BUCKET:/ega/inbox"
-    user: lega
-    entrypoint: ["ega-ingest"]
-
 volumes:
   vault_s3:
   db:
@@ -196,6 +151,4 @@ configs:
   ega.sec.pass:
     external: true
   ega.pub:
-    external: true
-  ega.shared.pass:
     external: true

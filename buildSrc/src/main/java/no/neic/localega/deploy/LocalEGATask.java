@@ -1,7 +1,6 @@
 package no.neic.localega.deploy;
 
 import lombok.extern.slf4j.Slf4j;
-import net.schmizz.sshj.common.Base64;
 import org.apache.commons.io.FileUtils;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -10,6 +9,7 @@ import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
+import org.bouncycastle.util.encoders.Base64;
 import org.gradle.api.DefaultTask;
 
 import java.io.*;
@@ -46,6 +46,11 @@ public abstract class LocalEGATask extends DefaultTask {
         throw new RuntimeException("Can't read certificate file from file: " + certificateFilePath);
     }
 
+    protected KeyPair generateKeyPair() throws NoSuchAlgorithmException {
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+        return keyPairGenerator.generateKeyPair();
+    }
+
     protected KeyPair readKeyPair(String keyPairFilePath) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
         String keyFileContent = FileUtils.readFileToString(new File(keyPairFilePath), Charset.defaultCharset());
         if (keyFileContent.startsWith("-----BEGIN RSA PRIVATE KEY-----")) {
@@ -69,7 +74,7 @@ public abstract class LocalEGATask extends DefaultTask {
         throw new RuntimeException("Can't read certificate key pair from file: " + keyPairFilePath);
     }
 
-    private KeyPair readPKCS8KeyPair(String keyPairFileContent) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+    private KeyPair readPKCS8KeyPair(String keyPairFileContent) throws NoSuchAlgorithmException, InvalidKeySpecException {
         keyPairFileContent = keyPairFileContent
                 .replaceAll("\\n", "")
                 .replace("-----BEGIN PRIVATE KEY-----", "")
@@ -78,12 +83,12 @@ public abstract class LocalEGATask extends DefaultTask {
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(encoded);
         PrivateKey privateKey = keyFactory.generatePrivate(pkcs8EncodedKeySpec);
-        RSAPublicKeySpec rsaPublicKeySpec = getRSAPublicKeySpec(privateKey);
+        RSAPublicKeySpec rsaPublicKeySpec = derivePublicKey(privateKey);
         PublicKey publicKey = keyFactory.generatePublic(rsaPublicKeySpec);
         return new KeyPair(publicKey, privateKey);
     }
 
-    private RSAPublicKeySpec getRSAPublicKeySpec(PrivateKey privateKey) {
+    private RSAPublicKeySpec derivePublicKey(PrivateKey privateKey) {
         RSAPrivateCrtKey rsaPrivateCrtKey = (RSAPrivateCrtKey) privateKey;
         return new RSAPublicKeySpec(rsaPrivateCrtKey.getModulus(), rsaPrivateCrtKey.getPublicExponent());
     }
