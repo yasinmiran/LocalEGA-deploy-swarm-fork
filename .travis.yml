@@ -8,7 +8,7 @@ cache:
 install:
   - sudo apt-get install -q linuxbrew-wrapper libnss3-tools --fix-missing
   - brew install mkcert
-  - mkcert -install
+  - yes | mkcert -install
   - curl -L https://github.com/uio-bmi/crypt4gh/releases/download/v2.2.0/crypt4gh.jar
 
 script:
