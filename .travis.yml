@@ -6,7 +6,8 @@ cache:
     - $HOME/.gradle
 
 install:
-  - sudo apt-get install -q linuxbrew-wrapper libnss3-tools --fix-missing
+  - git clone https://github.com/FiloSottile/mkcert
+  - go build -ldflags "-X main.Version=$(git describe --tags)"
   - brew install mkcert
   - yes | mkcert -install
   - curl -L https://github.com/uio-bmi/crypt4gh/releases/download/v2.2.0/crypt4gh.jar
