@@ -22,6 +22,7 @@ install:
   - curl -L https://github.com/uio-bmi/crypt4gh/releases/download/v2.3.0/crypt4gh.jar > crypt4gh.jar
   - echo "password" > ega.sec.pass
   - java -jar crypt4gh.jar -g ega -kf crypt4gh -kp password
+  - docker swarm init
   - docker config create ega.sec ega.sec.pem
   - docker config create ega.sec.pass ega.sec.pass
   - docker config create ega.pub ega.pub.pem
