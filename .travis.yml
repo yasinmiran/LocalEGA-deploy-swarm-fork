@@ -9,7 +9,8 @@ install:
   - curl -L https://github.com/FiloSottile/mkcert/releases/download/v1.4.1/mkcert-v1.4.1-linux-amd64 > mkcert
   - chmod +x ./mkcert
   - ./mkcert -install
-  - curl -L https://github.com/uio-bmi/crypt4gh/releases/download/v2.2.0/crypt4gh.jar
+  - curl -L https://github.com/uio-bmi/crypt4gh/releases/download/v2.3.0/crypt4gh.jar > crypt4gh.jar
+  - java -jar crypt4gh -g key -kf crypt4gh -kp password
 
 script:
   - echo "test"
