@@ -6,10 +6,9 @@ cache:
     - $HOME/.gradle
 
 install:
-  - git clone https://github.com/FiloSottile/mkcert
-  - cd mkcert && go build -ldflags "-X main.Version=$(git describe --tags)" && cd ..
-  - brew install mkcert
-  - yes | mkcert -install
+  - curl https://github.com/FiloSottile/mkcert/releases/download/v1.4.1/mkcert-v1.4.1-linux-amd64 > mkcert
+  - chmod +x ./mkcert
+  - ./mkcert -install
   - curl -L https://github.com/uio-bmi/crypt4gh/releases/download/v2.2.0/crypt4gh.jar
 
 script:
