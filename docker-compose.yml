@@ -20,17 +20,17 @@ services:
       - PG_CA=/etc/ega/CA.cert
       - PG_VERIFY_PEER=1
     configs:
-      - source: client-server.cert
+      - source: server.pem
         target: /etc/ega/pg.cert
         uid: '70'
         gid: '70'
         mode: 0600
-      - source: client-server.key
+      - source: server-key.key
         target: /etc/ega/pg.key
         uid: '70'
         gid: '70'
         mode: 0600
-      - source: CA.cert
+      - source: rootCA.pem
         target: /etc/ega/CA.cert
         uid: '70'
         gid: '70'
@@ -51,11 +51,11 @@ services:
       - MINIO_ACCESS_KEY
       - MINIO_SECRET_KEY
     configs:
-      - source: client-server.cert
+      - source: server.pem
         target: /root/.minio/certs/public.crt
-      - source: client-server.key
+      - source: server-key.pem
         target: /root/.minio/certs/private.key
-      - source: CA.cert
+      - source: rootCA.pem
         target: /root/.minio/CAs/LocalEGA.crt
     volumes:
       - vault_s3:/data
@@ -71,14 +71,14 @@ services:
     configs:
       - source: conf.ini
         target: /etc/ega/conf.ini
-      - source: client-server.cert
+      - source: client.pem
         target: /etc/ega/ssl.cert
-      - source: client-server.key
+      - source: client-key.pem
         target: /etc/ega/ssl.key
         uid: '1000'
         gid: '1000'
         mode: 0600
-      - source: CA.cert
+      - source: rootCA.pem
         target: /etc/ega/CA.cert
     volumes:
       - "$INBOX_LOCATION/$INBOX_BUCKET:/ega/inbox"
@@ -99,14 +99,14 @@ services:
     configs:
       - source: conf.ini
         target: /etc/ega/conf.ini
-      - source: client-server.cert
+      - source: client.pem
         target: /etc/ega/ssl.cert
-      - source: client-server.key
+      - source: client-key.pem
         target: /etc/ega/ssl.key
         uid: '1000'
         gid: '1000'
         mode: 0600
-      - source: CA.cert
+      - source: rootCA.pem
         target: /etc/ega/CA.cert
     user: lega
     entrypoint: ["ega-verify"]
@@ -121,14 +121,14 @@ services:
     configs:
       - source: conf.ini
         target: /etc/ega/conf.ini
-      - source: client-server.cert
+      - source: client.pem
         target: /etc/ega/ssl.cert
-      - source: client-server.key
+      - source: client-key.pem
         target: /etc/ega/ssl.key
         uid: '1000'
         gid: '1000'
         mode: 0600
-      - source: CA.cert
+      - source: rootCA.pem
         target: /etc/ega/CA.cert
     user: lega
     entrypoint: ["ega-finalize"]
@@ -138,11 +138,15 @@ volumes:
   db:
 
 configs:
-  CA.cert:
+  rootCA.pem:
     external: true
-  client-server.cert:
+  server.pem:
     external: true
-  client-server.key:
+  server-key.pem:
+    external: true
+  client.pem:
+    external: true
+  client-key.pem:
     external: true
   conf.ini:
     external: true

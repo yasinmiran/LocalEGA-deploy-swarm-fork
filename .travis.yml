@@ -12,8 +12,21 @@ install:
   - curl -L https://github.com/FiloSottile/mkcert/releases/download/v1.4.1/mkcert-v1.4.1-linux-amd64 > mkcert
   - chmod +x ./mkcert
   - ./mkcert -install
+  - ./mkcert db vault
+  - ./mkcert -client db vault
+  - docker config create rootCA.pem "$(./mkcert -CAROOT)/rootCA.pem"
+  - docker config create server.pem db+1.pem
+  - docker config create server-key.pem db+1-key.pem
+  - docker config create client.pem db+1-client.pem
+  - docker config create client-key.pem db+1-client-key.pem
   - curl -L https://github.com/uio-bmi/crypt4gh/releases/download/v2.3.0/crypt4gh.jar > crypt4gh.jar
-  - java -jar crypt4gh.jar -g key -kf crypt4gh -kp password
+  - echo "password" > ega.sec.pass
+  - java -jar crypt4gh.jar -g ega -kf crypt4gh -kp password
+  - docker config create ega.sec ega.sec.pem
+  - docker config create ega.sec.pass ega.sec.pass
+  - docker config create ega.pub ega.pub.pem
+  - docker-compose config > docker-stack.yml
+  - docker stack deploy LEGA -c docker-stack.yml
 
 script:
   - echo "test"
