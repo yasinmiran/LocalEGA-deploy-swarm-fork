@@ -6,12 +6,7 @@ cache:
     - $HOME/.gradle
 
 install:
-  - sudo apt-get update -q
-  - sudo apt-get install -q virtualbox libnss3-tools --fix-missing
-  - curl -L https://github.com/docker/machine/releases/download/v0.13.0/docker-machine-`uname -s`-`uname -m` > docker-machine
-  - chmod +x ./docker-machine
-  - ./docker-machine create --driver virtualbox tryggve
-  - ./docker-machine create --driver virtualbox tsd
+  - apt-get install -q libnss3-tools --fix-missing
   - brew install mkcert
   - mkcert -install
   - curl -L https://github.com/uio-bmi/crypt4gh/releases/download/v2.2.0/crypt4gh.jar
