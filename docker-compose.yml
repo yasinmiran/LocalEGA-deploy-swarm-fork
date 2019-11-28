@@ -38,7 +38,45 @@ services:
     volumes:
       - db:/ega/data
 
-  vault-s3:
+  public-mq:
+    image: uiobmi/localega-broker-public:latest
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - USER_NAME=${PRIVATE_BROKER_USER}
+      - PASSWORD_HASH=${PRIVATE_BROKER_HASH}
+      - PRIVATE_CONNECTION=${MQ_CONNECTION}
+      - CEGA_CONNECTION
+    configs:
+      - source: server.pem
+        target: /etc/rabbitmq/ssl.cert
+      - source: server-key.pem
+        target: /etc/rabbitmq/ssl.key
+      - source: rootCA.pem
+        target: /etc/rabbitmq/CA.cert
+
+  private-mq:
+    image: uiobmi/localega-broker-private:latest
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - USER_NAME=${PRIVATE_BROKER_USER}
+      - PASSWORD_HASH=${PRIVATE_BROKER_HASH}
+    configs:
+      - source: server.pem
+        target: /etc/rabbitmq/ssl.cert
+      - source: server-key.pem
+        target: /etc/rabbitmq/ssl.key
+      - source: rootCA.pem
+        target: /etc/rabbitmq/CA.cert
+
+  vault:
     image: minio/minio:latest
     ports:
       - "9000:9000"
@@ -58,7 +96,7 @@ services:
       - source: rootCA.pem
         target: /root/.minio/CAs/LocalEGA.crt
     volumes:
-      - vault_s3:/data
+      - vault:/data
     command: server /data
 
   ingest:
@@ -81,7 +119,7 @@ services:
       - source: rootCA.pem
         target: /etc/ega/CA.cert
     volumes:
-      - "$INBOX_LOCATION/$INBOX_BUCKET:/ega/inbox"
+      - inbox:/ega/inbox
     user: lega
     entrypoint: ["ega-ingest"]
 
@@ -93,7 +131,6 @@ services:
         delay: 5s
         window: 120s
     environment:
-      - LEGA_PASSWORD
       - S3_ACCESS_KEY=${MINIO_ACCESS_KEY}
       - S3_SECRET_KEY=${MINIO_SECRET_KEY}
     configs:
@@ -134,8 +171,9 @@ services:
     entrypoint: ["ega-finalize"]
 
 volumes:
-  vault_s3:
   db:
+  inbox:
+  vault:
 
 configs:
   rootCA.pem:

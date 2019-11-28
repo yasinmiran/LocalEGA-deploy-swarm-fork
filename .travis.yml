@@ -12,22 +12,25 @@ install:
   - curl -L https://github.com/FiloSottile/mkcert/releases/download/v1.4.1/mkcert-v1.4.1-linux-amd64 > mkcert
   - chmod +x ./mkcert
   - ./mkcert -install
-  - ./mkcert db vault
-  - ./mkcert -client db vault
+  - ./mkcert db vault public-mq private-mq
+  - ./mkcert -client db vault public-mq private-mq
   - docker swarm init
   - docker config create rootCA.pem "$(./mkcert -CAROOT)/rootCA.pem"
-  - docker config create server.pem db+1.pem
-  - docker config create server-key.pem db+1-key.pem
-  - docker config create client.pem db+1-client.pem
-  - docker config create client-key.pem db+1-client-key.pem
+  - docker config create server.pem db+3.pem
+  - docker config create server-key.pem db+3-key.pem
+  - docker config create client.pem db+3-client.pem
+  - docker config create client-key.pem db+3-client-key.pem
   - curl -L https://github.com/uio-bmi/crypt4gh/releases/download/v2.3.0/crypt4gh.jar > crypt4gh.jar
   - echo "password" > ega.sec.pass
   - java -jar crypt4gh.jar -g ega -kf crypt4gh -kp password
   - docker config create ega.sec ega.sec.pem
   - docker config create ega.sec.pass ega.sec.pass
   - docker config create ega.pub ega.pub.pem
+  - gradle generateConfIni
+  - cat conf.ini
+  - docker config create conf.ini conf.ini
   - docker-compose config > docker-stack.yml
-  - docker stack deploy LEGA -c docker-stack.yml
+#  - docker stack deploy LEGA -c docker-stack.yml
 
 script:
   - echo "test"
