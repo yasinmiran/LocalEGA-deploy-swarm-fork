@@ -14,7 +14,6 @@ dependencies {
     testCompile "junit:junit:4.12"
     testCompile "org.bouncycastle:bcpg-jdk15on:1.59"
     testCompile "org.bouncycastle:bcpkix-jdk15on:1.59"
-    testCompile "no.uio.ifi:crypt4gh:2.1.0"
     testCompile "commons-io:commons-io:2.5"
     testCompile "commons-codec:commons-codec:1.11"
     testCompile "org.apache.commons:commons-exec:1.3"
@@ -29,23 +28,8 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.6'
 }
 
-import no.neic.localega.deploy.certificates.GenerateCertificateTask
 import no.neic.localega.deploy.conf.GenerateConfIniTask
 import no.neic.localega.deploy.mq.IngestTask
-import no.neic.localega.deploy.keys.GenerateKeyTask
-
-task generateCertificate(type: GenerateCertificateTask) {
-    description = 'Generates client/server certs either based on supplied root CA or along with generating new root CA.\n' +
-            'Sample usage:\n' +
-            'gradle generateCertificate -PsubjectString=C=NO,ST=Oslo,L=Oslo,O=UiO,OU=IFI,CN=nels-developers@googlegroups.com\n' +
-            'gradle generateCertificate -PsubjectString=C=NO,ST=Oslo,L=Oslo,O=UiO,OU=IFI,CN=nels-developers@googlegroups.com -PfileName=localhost -PipAddress=127.0.0.1 -Ptype=SERVER -ProotCA=rootCA.pem -ProotCAKey=rootCA-key.pem'
-}
-
-task generateKey(type: GenerateKeyTask) {
-    description = 'Generates Crypt4GH key, stores password to file.\n' +
-            'Sample usage:\n' +
-            'gradle generateKey -Pid=ega -Ppassword=some_really_strong_password'
-}
 
 task generateConfIni(type: GenerateConfIniTask) {
     description = 'Generates conf.ini file based on environment variables.\n' +

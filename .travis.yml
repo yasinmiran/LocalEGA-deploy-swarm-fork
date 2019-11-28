@@ -9,6 +9,8 @@ cache:
     - $HOME/.gradle
 
 install:
+  - curl -L https://services.gradle.org/distributions/gradle-6.0.1-bin.zip > gradle.zip
+  -
   - curl -L https://github.com/FiloSottile/mkcert/releases/download/v1.4.1/mkcert-v1.4.1-linux-amd64 > mkcert
   - chmod +x ./mkcert
   - ./mkcert -install
@@ -30,7 +32,7 @@ install:
   - cat conf.ini
   - docker config create conf.ini conf.ini
   - docker-compose config > docker-stack.yml
-#  - docker stack deploy LEGA -c docker-stack.yml
+  - docker stack deploy LEGA -c docker-stack.yml
 
 script:
   - echo "test"

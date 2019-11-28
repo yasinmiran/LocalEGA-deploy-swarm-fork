@@ -14,7 +14,6 @@ dependencies {
     compile gradleApi()
     compile "org.bouncycastle:bcpg-jdk15on:1.59"
     compile "org.bouncycastle:bcpkix-jdk15on:1.59"
-    compile "no.uio.ifi:crypt4gh:2.1.0"
     compile "commons-io:commons-io:2.6"
     compile "commons-codec:commons-codec:1.11"
     compile "org.apache.commons:commons-exec:1.3"

@@ -4,7 +4,6 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
-import lombok.extern.slf4j.Slf4j;
 import no.neic.localega.deploy.LocalEGATask;
 import org.gradle.api.tasks.TaskAction;
 
