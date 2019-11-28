@@ -6,7 +6,7 @@ cache:
     - $HOME/.gradle
 
 install:
-  - curl https://github.com/FiloSottile/mkcert/releases/download/v1.4.1/mkcert-v1.4.1-linux-amd64 > mkcert
+  - curl -L https://github.com/FiloSottile/mkcert/releases/download/v1.4.1/mkcert-v1.4.1-linux-amd64 > mkcert
   - chmod +x ./mkcert
   - ./mkcert -install
   - curl -L https://github.com/uio-bmi/crypt4gh/releases/download/v2.2.0/crypt4gh.jar
