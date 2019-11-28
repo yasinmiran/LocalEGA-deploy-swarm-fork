@@ -25,7 +25,7 @@ services:
         uid: '70'
         gid: '70'
         mode: 0600
-      - source: server-key.key
+      - source: server-key.pem
         target: /etc/ega/pg.key
         uid: '70'
         gid: '70'

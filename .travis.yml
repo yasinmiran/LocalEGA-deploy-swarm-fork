@@ -12,7 +12,6 @@ install:
   - curl -L https://services.gradle.org/distributions/gradle-6.0.1-bin.zip > gradle.zip
   - sudo unzip -d /opt/gradle gradle.zip
   - export GRADLE_HOME=/opt/gradle/gradle-6.0.1
-  - gradle -v
   - export PATH=${GRADLE_HOME}/bin:${PATH}
   - curl -L https://github.com/FiloSottile/mkcert/releases/download/v1.4.1/mkcert-v1.4.1-linux-amd64 > mkcert
   - chmod +x ./mkcert
@@ -31,6 +30,7 @@ install:
   - docker config create ega.sec ega.sec.pem
   - docker config create ega.sec.pass ega.sec.pass
   - docker config create ega.pub ega.pub.pem
+  - source variables.sh
   - gradle generateConfIni
   - cat conf.ini
   - docker config create conf.ini conf.ini
