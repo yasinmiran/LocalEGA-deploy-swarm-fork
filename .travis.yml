@@ -6,11 +6,11 @@ cache:
     - $HOME/.gradle
 
 install:
-  - sudo curl -L https://github.com/docker/machine/releases/download/v0.13.0/docker-machine-`uname -s`-`uname -m` > /usr/local/bin/docker-machine
-  - sudo chmod +x /usr/local/bin/docker-machine
-  - sudo docker-machine create --driver virtualbox tryggve
-  - sudo docker-machine create --driver virtualbox tsd
-  - sudo apt install libnss3-tools
+  - curl -L https://github.com/docker/machine/releases/download/v0.13.0/docker-machine-`uname -s`-`uname -m` > docker-machine
+  - chmod +x ./docker-machine
+  - ./docker-machine create --driver virtualbox tryggve
+  - ./docker-machine create --driver virtualbox tsd
+  - apt install libnss3-tools
   - brew install mkcert
   - mkcert -install
   - curl -L https://github.com/uio-bmi/crypt4gh/releases/download/v2.2.0/crypt4gh.jar
