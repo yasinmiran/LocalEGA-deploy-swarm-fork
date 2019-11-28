@@ -14,6 +14,7 @@ install:
   - ./mkcert -install
   - ./mkcert db vault
   - ./mkcert -client db vault
+  - docker swarm init
   - docker config create rootCA.pem "$(./mkcert -CAROOT)/rootCA.pem"
   - docker config create server.pem db+1.pem
   - docker config create server-key.pem db+1-key.pem
@@ -22,7 +23,6 @@ install:
   - curl -L https://github.com/uio-bmi/crypt4gh/releases/download/v2.3.0/crypt4gh.jar > crypt4gh.jar
   - echo "password" > ega.sec.pass
   - java -jar crypt4gh.jar -g ega -kf crypt4gh -kp password
-  - docker swarm init
   - docker config create ega.sec ega.sec.pem
   - docker config create ega.sec.pass ega.sec.pass
   - docker config create ega.pub ega.pub.pem
