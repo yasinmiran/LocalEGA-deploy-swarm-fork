@@ -10,7 +10,7 @@ install:
   - chmod +x ./mkcert
   - ./mkcert -install
   - curl -L https://github.com/uio-bmi/crypt4gh/releases/download/v2.3.0/crypt4gh.jar > crypt4gh.jar
-  - java -jar crypt4gh -g key -kf crypt4gh -kp password
+  - java -jar crypt4gh.jar -g key -kf crypt4gh -kp password
 
 script:
   - echo "test"
