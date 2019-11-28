@@ -1,4 +1,7 @@
-language: generic
+language: java
+
+jdk:
+  - oraclejdk13
 
 cache:
   directories:
