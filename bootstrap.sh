@@ -1,7 +1,5 @@
 #!/bin/bash
 
-source variables.sh
-
 mkcert -install
 mkcert db vault public-mq private-mq
 mkcert -client db vault public-mq private-mq
