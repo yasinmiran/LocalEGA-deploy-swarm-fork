@@ -5,14 +5,21 @@ language: java
 jdk:
   - oraclejdk13
 
+rvm:
+  - 2.6
+
+before_cache:
+  - brew cleanup
+
 cache:
   directories:
     - $HOME/.m2
     - $HOME/.gradle
+    - $HOME/Library/Caches/Homebrew
 
 install:
-  - brew install gradle
-  - brew install mkcert
+  - brew install gradle mkcert
+  - source variables.sh
   - mkcert -install
   - mkcert db vault public-mq private-mq
   - mkcert -client db vault public-mq private-mq
@@ -28,7 +35,6 @@ install:
   - docker config create ega.sec ega.sec.pem
   - docker config create ega.sec.pass ega.sec.pass
   - docker config create ega.pub ega.pub.pem
-  - source variables.sh
   - gradle generateConfIni
   - cat conf.ini
   - docker config create conf.ini conf.ini
