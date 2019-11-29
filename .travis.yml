@@ -12,8 +12,7 @@ before_install: source install.sh
 
 install:
   - source bootstrap.sh
-  - docker-compose config > docker-stack.yml
-  - docker stack deploy LEGA -c docker-stack.yml
+  - source deploy.sh
 
 script:
   - echo "test"

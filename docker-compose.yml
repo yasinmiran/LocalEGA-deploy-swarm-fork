@@ -136,6 +136,11 @@ services:
     configs:
       - source: conf.ini
         target: /etc/ega/conf.ini
+      - source: ega.sec
+        target: /etc/ega/ega.sec
+        uid: '1000'
+        gid: '1000'
+        mode: 0600
       - source: client.pem
         target: /etc/ega/ssl.cert
       - source: client-key.pem
