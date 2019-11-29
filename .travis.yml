@@ -13,7 +13,8 @@ cache:
 
 install:
   - sudo apt-get install -y -q linuxbrew-wrapper libnss3-tools --fix-missing
-  - yes | brew --help
+  - yes | brew update
+  - brew update && brew vendor-install ruby && brew update
   - brew install gradle mkcert
   - source variables.sh
   - mkcert -install
