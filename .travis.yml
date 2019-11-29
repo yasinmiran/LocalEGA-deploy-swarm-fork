@@ -14,7 +14,7 @@ install:
   - export GRADLE_HOME=/opt/gradle/gradle-6.0.1
   - export PATH=${GRADLE_HOME}/bin:${PATH}
   - sudo curl -L https://github.com/FiloSottile/mkcert/releases/download/v1.4.1/mkcert-v1.4.1-linux-amd64 -o /opt/mkcert/bin/mkcert --create-dirs
-  - sudo chmod -R 755 /opt/mkcert
+  - sudo chmod -R 755 /opt
   - chmod +x /opt/mkcert/bin/mkcert
   - alias mkcert="/opt/mkcert/bin/mkcert"
   - mkcert -install
