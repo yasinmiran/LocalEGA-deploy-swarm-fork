@@ -10,16 +10,18 @@ cache:
 
 install:
   - curl -L https://services.gradle.org/distributions/gradle-6.0.1-bin.zip > gradle.zip
-  - sudo unzip -d /opt/gradle gradle.zip
+  - sudo unzip -d /opt/gradle gradle.zip && rm gradle.zip
   - export GRADLE_HOME=/opt/gradle/gradle-6.0.1
   - export PATH=${GRADLE_HOME}/bin:${PATH}
-  - curl -L https://github.com/FiloSottile/mkcert/releases/download/v1.4.1/mkcert-v1.4.1-linux-amd64 > mkcert
-  - chmod +x ./mkcert
-  - ./mkcert -install
-  - ./mkcert db vault public-mq private-mq
-  - ./mkcert -client db vault public-mq private-mq
+  - sudo curl -L https://github.com/FiloSottile/mkcert/releases/download/v1.4.1/mkcert-v1.4.1-linux-amd64 > /opt/mkcert/mkcert
+  - chmod +x /opt/mkcert/mkcert
+  - export MKCERT_HOME=/opt/mkcert
+  - export PATH=${MKCERT_HOME}/bin:${PATH}
+  - mkcert -install
+  - mkcert db vault public-mq private-mq
+  - mkcert -client db vault public-mq private-mq
   - docker swarm init
-  - docker config create rootCA.pem "$(./mkcert -CAROOT)/rootCA.pem"
+  - docker config create rootCA.pem "$(mkcert -CAROOT)/rootCA.pem"
   - docker config create server.pem db+3.pem
   - docker config create server-key.pem db+3-key.pem
   - docker config create client.pem db+3-client.pem
