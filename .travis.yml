@@ -14,7 +14,7 @@ cache:
     - $HOME/Library/Caches/Homebrew
 
 install:
-  - brew install gradle mkcert
+  - brew install docker docker-compose gradle mkcert
   - source variables.sh
   - mkcert -install
   - mkcert db vault public-mq private-mq
