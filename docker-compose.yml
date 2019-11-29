@@ -136,7 +136,7 @@ services:
     configs:
       - source: conf.ini
         target: /etc/ega/conf.ini
-      - source: ega.sec
+      - source: ega.sec.pem
         target: /etc/ega/ega.sec
         uid: '1000'
         gid: '1000'
@@ -175,6 +175,36 @@ services:
     user: lega
     entrypoint: ["ega-finalize"]
 
+  doa:
+    image: nbisweden/ega-doa:latest
+    ports:
+      - 8080:8080
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - CERT_PASSWORD
+      - POSTGRES_PASSWORD=${DB_LEGA_OUT_PASSWORD}
+      - S3_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - S3_SECRET_KEY=${MINIO_SECRET_KEY}
+    configs:
+      - source: rootCA.pem
+        target: /etc/ega/ssl/CA.cert
+      - source: server.p12
+        target: /etc/ega/ssl/server.cert
+      - source: client.pem
+        target: /etc/ega/ssl/client.cert
+      - source: client-key.der
+        target: /etc/ega/ssl/client.key
+      - source: jwt.pub.pem
+        target: /etc/ega/jwt/key.pem
+      - source: ega.sec.pem
+        target: /etc/ega/crypt4gh/key.pem
+      - source: ega.sec.pass
+        target: /etc/ega/crypt4gh/key.pass
+
 volumes:
   db:
   inbox:
@@ -187,15 +217,21 @@ configs:
     external: true
   server-key.pem:
     external: true
+  server.p12:
+    external: true
   client.pem:
     external: true
   client-key.pem:
     external: true
+  client-key.der:
+    external: true
   conf.ini:
     external: true
-  ega.sec:
+  ega.sec.pem:
     external: true
   ega.sec.pass:
     external: true
-  ega.pub:
+  ega.pub.pem:
+    external: true
+  jwt.pub.pem:
     external: true

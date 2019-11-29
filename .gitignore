@@ -136,7 +136,9 @@ gradlew.bat
 
 # End of https://www.gitignore.io/api/java,gradle,intellij+all
 
+*.p12
 *.pem
+!jwt.pub.pem
 *.der
 *.jks
 *.pub

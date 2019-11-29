@@ -9,4 +9,4 @@ docker volume rm $(docker volume list -q)
 # shellcheck disable=SC2046
 docker config rm $(docker config list -q)
 
-rm conf.ini db+*.pem docker-stack.yml ega*.pem ega*.pass
+rm conf.ini localhost+*.pem localhost+*.der docker-stack.yml ega*.pem ega*.pass

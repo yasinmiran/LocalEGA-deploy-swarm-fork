@@ -1,3 +1,4 @@
+export CERT_PASSWORD="cert_passw0rd"
 export DB_HOST="db"
 export DB_LEGA_IN_PASSWORD="in_passw0rd"
 export DB_LEGA_OUT_PASSWORD="0ut_passw0rd"
