@@ -1,9 +1,8 @@
 os: osx
 
-language: java
+osx_image: xcode11.2
 
-jdk:
-  - oraclejdk13
+language: ruby
 
 rvm:
   - 2.6
@@ -30,8 +29,8 @@ install:
   - docker config create client.pem db+3-client.pem
   - docker config create client-key.pem db+3-client-key.pem
   - curl -L https://github.com/uio-bmi/crypt4gh/releases/download/v2.3.0/crypt4gh.jar > crypt4gh.jar
-  - echo "password" > ega.sec.pass
-  - java -jar crypt4gh.jar -g ega -kf crypt4gh -kp password
+  - echo ${KEY_PASSWORD} > ega.sec.pass
+  - java -jar crypt4gh.jar -g ega -kf crypt4gh -kp ${KEY_PASSWORD}
   - docker config create ega.sec ega.sec.pem
   - docker config create ega.sec.pass ega.sec.pass
   - docker config create ega.pub ega.pub.pem
