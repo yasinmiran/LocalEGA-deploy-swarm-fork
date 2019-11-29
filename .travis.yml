@@ -2,10 +2,7 @@ os: osx
 
 osx_image: xcode11.2
 
-language: ruby
-
-rvm:
-  - 2.6
+language: generic
 
 before_cache:
   - brew cleanup
