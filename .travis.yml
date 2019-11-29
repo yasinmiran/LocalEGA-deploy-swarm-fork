@@ -1,20 +1,17 @@
-os: osx
+language: java
 
-osx_image: xcode11.2
-
-language: generic
-
-before_cache:
-  - brew cleanup
+jdk:
+  - oraclejdk13
 
 cache:
   directories:
     - $HOME/.m2
     - $HOME/.gradle
-    - $HOME/Library/Caches/Homebrew
 
 install:
-  - brew install docker docker-compose gradle mkcert
+  - sudo apt-get install -y -q linuxbrew-wrapper libnss3-tools --fix-missing
+  - yes | brew --help
+  - brew install gradle mkcert
   - source variables.sh
   - mkcert -install
   - mkcert db vault public-mq private-mq
