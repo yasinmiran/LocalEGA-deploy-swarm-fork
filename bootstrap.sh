@@ -19,10 +19,10 @@ docker config create ega.sec ega.sec.pem
 docker config create ega.sec.pass ega.sec.pass
 docker config create ega.pub ega.pub.pem
 
-perl -i.bak -pe 's!MINIO_ACCESS_KEY!$ENV{"MINIO_ACCESS_KEY"}!g' conf.ini
-perl -i.bak -pe 's!MINIO_SECRET_KEY!$ENV{"MINIO_SECRET_KEY"}!g' conf.ini
-perl -i.bak -pe 's!DB_HOST!$ENV{"DB_HOST"}!g' conf.ini
-perl -i.bak -pe 's!DB_LEGA_IN_PASSWORD!$ENV{"DB_LEGA_IN_PASSWORD"}!g' conf.ini
-perl -i.bak -pe 's!MQ_CONNECTION!$ENV{"MQ_CONNECTION"}!g' conf.ini
-cat conf.ini
-docker config create conf.ini conf.ini
+perl -i.bak -pe 's!MINIO_ACCESS_KEY!$ENV{"MINIO_ACCESS_KEY"}!g' default.conf.ini
+perl -i.bak -pe 's!MINIO_SECRET_KEY!$ENV{"MINIO_SECRET_KEY"}!g' default.conf.ini
+perl -i.bak -pe 's!DB_HOST!$ENV{"DB_HOST"}!g' default.conf.ini
+perl -i.bak -pe 's!DB_LEGA_IN_PASSWORD!$ENV{"DB_LEGA_IN_PASSWORD"}!g' default.conf.ini
+perl -i.bak -pe 's!MQ_CONNECTION!$ENV{"MQ_CONNECTION"}!g' default.conf.ini
+cat default.conf.ini
+docker config create conf.ini default.conf.ini
