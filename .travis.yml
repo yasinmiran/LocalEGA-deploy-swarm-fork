@@ -15,8 +15,7 @@ install:
   - export PATH=${GRADLE_HOME}/bin:${PATH}
   - sudo curl -L https://github.com/FiloSottile/mkcert/releases/download/v1.4.1/mkcert-v1.4.1-linux-amd64 -o /opt/mkcert/bin/mkcert --create-dirs
   - sudo chmod +x /opt/mkcert/bin/mkcert
-  - export MKCERT_HOME=/opt/mkcert
-  - export PATH=${MKCERT_HOME}/bin:${PATH}
+  - alias mkcert="/opt/mkcert/bin/mkcert"
   - mkcert -install
   - mkcert db vault public-mq private-mq
   - mkcert -client db vault public-mq private-mq
