@@ -3,35 +3,35 @@ language: java
 jdk:
   - oraclejdk13
 
-rvm:
-  - 2.6
-
 cache:
   directories:
     - $HOME/.m2
     - $HOME/.gradle
 
 install:
-  - sudo apt-get install -y -q linuxbrew-wrapper libnss3-tools --fix-missing
-  - yes | brew --help
-  - brew update && brew vendor-install ruby && brew update
-  - brew install gradle mkcert
-  - source variables.sh
+  - curl -L https://services.gradle.org/distributions/gradle-6.0.1-bin.zip -o gradle.zip
+  - sudo unzip -qq -d /opt/gradle gradle.zip && rm gradle.zip
+  - export GRADLE_HOME=/opt/gradle/gradle-6.0.1
+  - export PATH=${GRADLE_HOME}/bin:${PATH}
+  - curl -L https://github.com/FiloSottile/mkcert/releases/download/v1.4.1/mkcert-v1.4.1-linux-amd64 -o ~/mkcert
+  - chmod +x ~/mkcert
+  - alias mkcert="~/mkcert"
   - mkcert -install
   - mkcert db vault public-mq private-mq
   - mkcert -client db vault public-mq private-mq
-  - sudo docker swarm init
+  - docker swarm init
   - docker config create rootCA.pem "$(mkcert -CAROOT)/rootCA.pem"
   - docker config create server.pem db+3.pem
   - docker config create server-key.pem db+3-key.pem
   - docker config create client.pem db+3-client.pem
   - docker config create client-key.pem db+3-client-key.pem
   - curl -L https://github.com/uio-bmi/crypt4gh/releases/download/v2.3.0/crypt4gh.jar > crypt4gh.jar
-  - echo ${KEY_PASSWORD} > ega.sec.pass
-  - java -jar crypt4gh.jar -g ega -kf crypt4gh -kp ${KEY_PASSWORD}
+  - echo "password" > ega.sec.pass
+  - java -jar crypt4gh.jar -g ega -kf crypt4gh -kp password
   - docker config create ega.sec ega.sec.pem
   - docker config create ega.sec.pass ega.sec.pass
   - docker config create ega.pub ega.pub.pem
+  - source variables.sh
   - gradle generateConfIni
   - cat conf.ini
   - docker config create conf.ini conf.ini
