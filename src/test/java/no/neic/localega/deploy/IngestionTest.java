@@ -7,11 +7,9 @@ import com.rabbitmq.client.ConnectionFactory;
 import io.minio.MinioClient;
 import io.minio.errors.*;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.crypt4gh.stream.Crypt4GHOutputStream;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
-import org.bouncycastle.openpgp.PGPException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -25,6 +23,7 @@ import java.io.RandomAccessFile;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.InvalidKeyException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -43,28 +42,28 @@ public class IngestionTest {
     private File encFile;
 
     @Before
-    public void setup() throws IOException, PGPException {
+    public void setup() throws IOException {
         long fileSize = 1024 * 1024 * 10;
         log.info("Generating " + fileSize + " bytes file to submit...");
         rawFile = new File(UUID.randomUUID().toString() + ".raw");
         RandomAccessFile randomAccessFile = new RandomAccessFile(rawFile, "rw");
         randomAccessFile.setLength(fileSize);
         randomAccessFile.close();
-        byte[] bytes = DigestUtils.sha256(FileUtils.openInputStream(rawFile));
+        byte[] bytes = DigestUtils.sha256(Files.newInputStream(rawFile.toPath()));
         log.info("Checksum: " + Hex.encodeHexString(bytes));
 
         log.info("Encrypting the file with Crypt4GH...");
         encFile = new File(rawFile.getName() + ".enc");
-        byte[] digest = DigestUtils.sha256(FileUtils.openInputStream(rawFile));
-        String key = FileUtils.readFileToString(new File("ega.pub"), Charset.defaultCharset());
+        byte[] digest = DigestUtils.sha256(Files.newInputStream(rawFile.toPath()));
+        String key = FileUtils.readFileToString(new File("ega.pub"), Charset.defaultCharset().displayName());
         FileOutputStream fileOutputStream = new FileOutputStream(encFile);
-        Crypt4GHOutputStream crypt4GHOutputStream = new Crypt4GHOutputStream(fileOutputStream, key, digest);
-        String sessionKey = Hex.encodeHexString(crypt4GHOutputStream.getSessionKeyBytes());
-        String iv = Hex.encodeHexString(crypt4GHOutputStream.getIvBytes());
-        log.info("Session key: " + sessionKey);
-        log.info("IV: " + iv);
-        FileUtils.copyFile(rawFile, crypt4GHOutputStream);
-        crypt4GHOutputStream.close();
+//        Crypt4GHOutputStream crypt4GHOutputStream = new Crypt4GHOutputStream(fileOutputStream, key, digest);
+//        String sessionKey = Hex.encodeHexString(crypt4GHOutputStream.getSessionKeyBytes());
+//        String iv = Hex.encodeHexString(crypt4GHOutputStream.getIvBytes());
+//        log.info("Session key: " + sessionKey);
+//        log.info("IV: " + iv);
+//        FileUtils.copyFile(rawFile, crypt4GHOutputStream);
+//        crypt4GHOutputStream.close();
     }
 
     @Test
@@ -80,7 +79,7 @@ public class IngestionTest {
         }
     }
 
-    private void upload(String s3Endpoint, String accessKey, String secretKey) throws IOException, InvalidPortException, InvalidEndpointException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InvalidArgumentException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException {
+    private void upload(String s3Endpoint, String accessKey, String secretKey) throws IOException, InvalidPortException, InvalidEndpointException, InvalidKeyException, NoSuchAlgorithmException, InsufficientDataException, InvalidArgumentException, InternalException, NoResponseException, InvalidBucketNameException, XmlPullParserException, ErrorResponseException, InvalidResponseException {
         log.info("Connecting to " + s3Endpoint);
         MinioClient minioClient = new MinioClient(s3Endpoint, accessKey, secretKey, false);
         log.info("Uploading a file...");
@@ -113,6 +112,7 @@ public class IngestionTest {
         connectionFactory.close();
     }
 
+    @SuppressWarnings({"SqlResolve", "SqlNoDataSourceInspection"})
     private void verify(String dbHost) throws SQLException {
         log.info("Starting verification...");
         String port = "5432";
