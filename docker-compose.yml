@@ -22,6 +22,8 @@ services:
         
   proxy:
     image: uiobmi/localega-tsd-proxy:latest
+    ports:
+      - 443:8080
     deploy:
       restart_policy:
         condition: on-failure
