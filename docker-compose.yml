@@ -265,6 +265,8 @@ configs:
     external: true
   client-key.der:
     external: true
+  client.p12:
+    external: true
   conf.ini:
     external: true
   ega.sec.pem:
