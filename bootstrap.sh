@@ -1,19 +1,20 @@
 #!/bin/bash
 
 mkcert -install
-mkcert localhost db vault public-mq private-mq
-openssl pkcs12 -export -out localhost+4.p12 -in localhost+4.pem -inkey localhost+4-key.pem -passout pass:"${CERT_PASSWORD}"
+cp "$(mkcert -CAROOT)/rootCA.pem" rootCA.pem
+mkcert localhost db vault public-mq private-mq stub proxy
+openssl pkcs12 -export -out localhost+6.p12 -in localhost+6.pem -inkey localhost+6-key.pem -passout pass:"${CERT_PASSWORD}"
 mkcert -client localhost db vault public-mq private-mq
-openssl pkcs8 -topk8 -inform PEM -in localhost+4-client-key.pem -outform DER -nocrypt -out localhost+4-client-key.der
+openssl pkcs8 -topk8 -inform PEM -in localhost+6-client-key.pem -outform DER -nocrypt -out localhost+6-client-key.der
 
 docker swarm init
-docker config create rootCA.pem "$(mkcert -CAROOT)/rootCA.pem"
-docker config create server.pem localhost+4.pem
-docker config create server-key.pem localhost+4-key.pem
-docker config create server.p12 localhost+4.p12
-docker config create client.pem localhost+4-client.pem
-docker config create client-key.pem localhost+4-client-key.pem
-docker config create client-key.der localhost+4-client-key.der
+docker config create rootCA.pem rootCA.pem
+docker config create server.pem localhost+6.pem
+docker config create server-key.pem localhost+6-key.pem
+docker config create server.p12 localhost+6.p12
+docker config create client.pem localhost+6-client.pem
+docker config create client-key.pem localhost+6-client-key.pem
+docker config create client-key.der localhost+6-client-key.der
 docker config create jwt.pub.pem jwt.pub.pem
 
 echo "${KEY_PASSWORD}" > ega.sec.pass
