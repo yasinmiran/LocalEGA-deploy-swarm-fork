@@ -2,10 +2,50 @@ version: '3.3'
 
 services:
 
+  tsd:
+    image: uiobmi/tsd-stub:latest
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - TSD_HOST
+      - CERT_PASSWORD=${SERVER_CERT_PASSWORD}
+    configs:
+      - source: rootCA.pem
+        target: /etc/ega/ssl/CA.cert
+      - source: server.p12
+        target: /etc/ega/ssl/server.cert
+    volumes:
+      - tsd:/tsd/p11/data/durable/file-import/
+        
+  proxy:
+    image: uiobmi/localega-tsd-proxy:latest
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - SERVER_CERT_PASSWORD
+      - CLIENT_CERT_PASSWORD
+      - CEGA_USERNAME
+      - CEGA_PASSWORD
+    configs:
+      - source: rootCA.pem
+        target: /etc/ega/ssl/CA.cert
+      - source: server.p12
+        target: /etc/ega/ssl/server.cert
+      - source: client.p12
+        target: /etc/ega/ssl/client.cert
+    volumes:
+      - tsd:/tsd/p11/data/durable/file-import/
+
   db:
     image: nbisweden/ega-db:m7-v2
     ports:
-      - "5432:5432"
+      - 5432:5432
     deploy:
       restart_policy:
         condition: on-failure
@@ -22,18 +62,18 @@ services:
     configs:
       - source: server.pem
         target: /etc/ega/pg.cert
-        uid: '70'
-        gid: '70'
+        uid: 70
+        gid: 70
         mode: 0600
       - source: server-key.pem
         target: /etc/ega/pg.key
-        uid: '70'
-        gid: '70'
+        uid: 70
+        gid: 70
         mode: 0600
       - source: rootCA.pem
         target: /etc/ega/CA.cert
-        uid: '70'
-        gid: '70'
+        uid: 70
+        gid: 70
         mode: 0600
     volumes:
       - db:/ega/data
@@ -79,7 +119,7 @@ services:
   vault:
     image: minio/minio:latest
     ports:
-      - "9000:9000"
+      - 9000:9000
     deploy:
       restart_policy:
         condition: on-failure
@@ -113,13 +153,13 @@ services:
         target: /etc/ega/ssl.cert
       - source: client-key.pem
         target: /etc/ega/ssl.key
-        uid: '1000'
-        gid: '1000'
+        uid: 1000
+        gid: 1000
         mode: 0600
       - source: rootCA.pem
         target: /etc/ega/CA.cert
     volumes:
-      - inbox:/ega/inbox
+      - tsd:/ega/inbox
     user: lega
     entrypoint: ["ega-ingest"]
 
@@ -138,15 +178,15 @@ services:
         target: /etc/ega/conf.ini
       - source: ega.sec.pem
         target: /etc/ega/ega.sec
-        uid: '1000'
-        gid: '1000'
+        uid: 1000
+        gid: 1000
         mode: 0600
       - source: client.pem
         target: /etc/ega/ssl.cert
       - source: client-key.pem
         target: /etc/ega/ssl.key
-        uid: '1000'
-        gid: '1000'
+        uid: 1000
+        gid: 1000
         mode: 0600
       - source: rootCA.pem
         target: /etc/ega/CA.cert
@@ -167,8 +207,8 @@ services:
         target: /etc/ega/ssl.cert
       - source: client-key.pem
         target: /etc/ega/ssl.key
-        uid: '1000'
-        gid: '1000'
+        uid: 1000
+        gid: 1000
         mode: 0600
       - source: rootCA.pem
         target: /etc/ega/CA.cert
@@ -185,7 +225,7 @@ services:
         delay: 5s
         window: 120s
     environment:
-      - CERT_PASSWORD
+      - CERT_PASSWORD=${SERVER_CERT_PASSWORD}
       - POSTGRES_PASSWORD=${DB_LEGA_OUT_PASSWORD}
       - S3_ACCESS_KEY=${MINIO_ACCESS_KEY}
       - S3_SECRET_KEY=${MINIO_SECRET_KEY}
@@ -206,8 +246,8 @@ services:
         target: /etc/ega/crypt4gh/key.pass
 
 volumes:
+  tsd:
   db:
-  inbox:
   vault:
 
 configs:
