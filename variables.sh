@@ -1,6 +1,7 @@
 export SERVER_CERT_PASSWORD="server_cert_passw0rd"
 export CLIENT_CERT_PASSWORD="client_cert_passw0rd"
 export TSD_HOST="tsd"
+export TSD_ACCESS_KEY="s0me_key"
 export DB_HOST="db"
 export DB_LEGA_IN_PASSWORD="in_passw0rd"
 export DB_LEGA_OUT_PASSWORD="0ut_passw0rd"

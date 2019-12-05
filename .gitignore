@@ -199,3 +199,6 @@ buildNumber.properties
 *.pem
 *.der
 *.p12
+conf.ini
+ega.sec.pass
+docker-stack.yml

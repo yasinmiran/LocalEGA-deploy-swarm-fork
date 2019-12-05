@@ -10,7 +10,6 @@ services:
         delay: 5s
         window: 120s
     environment:
-      - TSD_HOST
       - CERT_PASSWORD=${SERVER_CERT_PASSWORD}
     configs:
       - source: rootCA.pem
@@ -34,6 +33,8 @@ services:
       - CLIENT_CERT_PASSWORD
       - CEGA_USERNAME
       - CEGA_PASSWORD
+      - TSD_HOST
+      - TSD_ACCESS_KEY
     configs:
       - source: rootCA.pem
         target: /etc/ega/ssl/CA.cert
