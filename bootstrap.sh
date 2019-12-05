@@ -4,7 +4,7 @@ mkcert -install
 cp "$(mkcert -CAROOT)/rootCA.pem" rootCA.pem
 mkcert localhost db vault public-mq private-mq stub proxy
 openssl pkcs12 -export -out localhost+6.p12 -in localhost+6.pem -inkey localhost+6-key.pem -passout pass:"${CERT_PASSWORD}"
-mkcert -client localhost db vault public-mq private-mq
+mkcert -client localhost db vault public-mq private-mq stub proxy
 openssl pkcs8 -topk8 -inform PEM -in localhost+6-client-key.pem -outform DER -nocrypt -out localhost+6-client-key.der
 
 docker swarm init
