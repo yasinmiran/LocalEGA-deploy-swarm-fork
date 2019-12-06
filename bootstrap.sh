@@ -2,9 +2,9 @@
 
 mkcert -install
 cp "$(mkcert -CAROOT)/rootCA.pem" rootCA.pem
-mkcert localhost db vault public-mq private-mq stub proxy
+mkcert localhost db vault public-mq private-mq tsd proxy
 openssl pkcs12 -export -out localhost+6.p12 -in localhost+6.pem -inkey localhost+6-key.pem -passout pass:"${SERVER_CERT_PASSWORD}"
-mkcert -client localhost db vault public-mq private-mq stub proxy
+mkcert -client localhost db vault public-mq private-mq tsd proxy
 openssl pkcs12 -export -out localhost+6-client.p12 -in localhost+6-client.pem -inkey localhost+6-client-key.pem -passout pass:"${CLIENT_CERT_PASSWORD}"
 openssl pkcs8 -topk8 -inform PEM -in localhost+6-client-key.pem -outform DER -nocrypt -out localhost+6-client-key.der
 
@@ -33,3 +33,5 @@ perl -i -pe 's!DB_HOST!$ENV{"DB_HOST"}!g' conf.ini
 perl -i -pe 's!DB_LEGA_IN_PASSWORD!$ENV{"DB_LEGA_IN_PASSWORD"}!g' conf.ini
 perl -i -pe 's!MQ_CONNECTION!$ENV{"MQ_CONNECTION"}!g' conf.ini
 docker config create conf.ini conf.ini
+
+docker-compose config > docker-stack.yml
