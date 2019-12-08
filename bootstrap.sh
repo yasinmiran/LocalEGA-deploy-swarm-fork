@@ -2,6 +2,8 @@
 
 mkcert -install
 cp "$(mkcert -CAROOT)/rootCA.pem" rootCA.pem
+cp "$(mkcert -CAROOT)/rootCA-key.pem" rootCA-key.pem
+openssl pkcs12 -export -out rootCA.p12 -in rootCA.pem -inkey rootCA-key.pem -passout pass:"${ROOT_CERT_PASSWORD}"
 mkcert localhost db vault public-mq private-mq tsd proxy
 openssl pkcs12 -export -out localhost+6.p12 -in localhost+6.pem -inkey localhost+6-key.pem -passout pass:"${SERVER_CERT_PASSWORD}"
 mkcert -client localhost db vault public-mq private-mq tsd proxy
@@ -10,6 +12,7 @@ openssl pkcs8 -topk8 -inform PEM -in localhost+6-client-key.pem -outform DER -no
 
 docker swarm init
 docker config create rootCA.pem rootCA.pem
+docker config create rootCA.p12 rootCA.p12
 docker config create server.pem localhost+6.pem
 docker config create server-key.pem localhost+6-key.pem
 docker config create server.p12 localhost+6.p12

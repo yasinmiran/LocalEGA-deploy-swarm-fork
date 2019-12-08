@@ -35,7 +35,7 @@ services:
       - TSD_HOST
       - TSD_ACCESS_KEY
     configs:
-      - source: rootCA.pem
+      - source: rootCA.p12
         target: /etc/ega/ssl/CA.cert
       - source: server.p12
         target: /etc/ega/ssl/server.cert
@@ -252,6 +252,8 @@ volumes:
 
 configs:
   rootCA.pem:
+    external: true
+  rootCA.p12:
     external: true
   server.pem:
     external: true
