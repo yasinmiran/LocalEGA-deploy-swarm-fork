@@ -29,7 +29,9 @@ services:
         delay: 5s
         window: 120s
     environment:
+      - ROOT_CERT_PASSWORD
       - SERVER_CERT_PASSWORD
+      - CLIENT_CERT_PASSWORD
       - CEGA_USERNAME
       - CEGA_PASSWORD
       - TSD_HOST
@@ -39,6 +41,8 @@ services:
         target: /etc/ega/ssl/CA.cert
       - source: server.p12
         target: /etc/ega/ssl/server.cert
+      - source: client.p12
+        target: /etc/ega/ssl/client.cert
     volumes:
       - tsd:/tsd/p11/data/durable/file-import/
 

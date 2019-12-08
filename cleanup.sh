@@ -8,4 +8,6 @@ docker volume rm LEGA_tsd LEGA_db LEGA_vault
 # shellcheck disable=SC2046
 docker config rm $(docker config list -q)
 
-rm conf.ini rootCA.pem localhost+*.pem localhost+*.p12 localhost+*.der docker-stack.yml ega*.pem ega*.pass
+# shellcheck disable=SC2035
+# shellcheck disable=SC2216
+rm conf.ini rootCA.pem rootCA-key.pem localhost+*.pem *.p12 localhost+*.der docker-stack.yml ega*.pem ega*.pass
