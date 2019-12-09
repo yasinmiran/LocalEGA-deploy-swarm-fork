@@ -92,7 +92,7 @@ services:
     environment:
       - USER_NAME=${PRIVATE_BROKER_USER}
       - PASSWORD_HASH=${PRIVATE_BROKER_HASH}
-      - PRIVATE_CONNECTION=${MQ_CONNECTION}
+      - PRIVATE_CONNECTION
       - CEGA_CONNECTION
     configs:
       - source: server.pem
@@ -101,6 +101,10 @@ services:
         target: /etc/rabbitmq/ssl.key
       - source: rootCA.pem
         target: /etc/rabbitmq/CA.cert
+      - source: client.pem
+        target: /etc/ega/ssl.cert
+      - source: client-key.pem
+        target: /etc/ega/ssl.key
 
   private-mq:
     image: uiobmi/localega-broker-private:latest
