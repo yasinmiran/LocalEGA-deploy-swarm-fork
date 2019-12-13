@@ -126,8 +126,6 @@ services:
 
   vault:
     image: minio/minio:latest
-    ports:
-      - 9000:9000
     deploy:
       restart_policy:
         condition: on-failure
@@ -233,13 +231,16 @@ services:
         delay: 5s
         window: 120s
     environment:
-      - CERT_PASSWORD=${SERVER_CERT_PASSWORD}
+      - S3_PORT
+      - KEYSTORE_PASSWORD=${SERVER_CERT_PASSWORD}
       - POSTGRES_PASSWORD=${DB_LEGA_OUT_PASSWORD}
       - S3_ACCESS_KEY=${MINIO_ACCESS_KEY}
       - S3_SECRET_KEY=${MINIO_SECRET_KEY}
     configs:
       - source: rootCA.pem
         target: /etc/ega/ssl/CA.cert
+      - source: rootCA.pem
+        target: /etc/ssl/certs/ca-certificates.crt
       - source: server.p12
         target: /etc/ega/ssl/server.cert
       - source: client.pem
