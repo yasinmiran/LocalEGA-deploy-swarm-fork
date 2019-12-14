@@ -15,4 +15,5 @@ install:
   - source deploy.sh
 
 script:
-  - echo "test"
+  - sleep 60
+  - mvn test
