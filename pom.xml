@@ -63,7 +63,7 @@
 
     <repositories>
         <repository>
-            <id>central</id>
+            <id>jcenter</id>
             <name>bintray</name>
             <url>http://jcenter.bintray.com</url>
         </repository>
