@@ -126,6 +126,7 @@ public class IngestionTest {
                 .deliveryMode(2)
                 .contentType("application/json")
                 .contentEncoding(StandardCharsets.UTF_8.displayName())
+                .correlationId(UUID.randomUUID().toString())
                 .build();
 
 

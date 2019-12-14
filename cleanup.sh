@@ -4,7 +4,8 @@ docker stack rm LEGA
 sleep 10
 # shellcheck disable=SC2046
 docker rm $(docker ps -aq)
-docker volume rm LEGA_tsd LEGA_db LEGA_vault
+# shellcheck disable=SC2046
+docker volume rm $(docker volume list -q)
 # shellcheck disable=SC2046
 docker config rm $(docker config list -q)
 
