@@ -3,11 +3,6 @@ language: java
 jdk:
   - oraclejdk13
 
-cache:
-  directories:
-    - $HOME/.m2
-    - $HOME/.gradle
-
 before_install: source install.sh
 
 install:
