@@ -10,5 +10,5 @@ install:
   - source deploy.sh
 
 script:
-  - sleep 60
+  - sleep 120
   - mvn test
