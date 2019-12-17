@@ -146,7 +146,7 @@ services:
     command: server /data
 
   ingest:
-    image: egarchive/lega-base:latest
+    image: nbisweden/ega-base:latest
     deploy:
       restart_policy:
         condition: on-failure
@@ -170,7 +170,7 @@ services:
     entrypoint: ["ega-ingest"]
 
   verify:
-    image: egarchive/lega-base:latest
+    image: nbisweden/lega-base:latest
     deploy:
       restart_policy:
         condition: on-failure
@@ -200,7 +200,7 @@ services:
     entrypoint: ["ega-verify"]
 
   finalize:
-    image: egarchive/lega-base:latest
+    image: nbisweden/lega-base:latest
     deploy:
       restart_policy:
         condition: on-failure
