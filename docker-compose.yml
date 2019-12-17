@@ -170,7 +170,7 @@ services:
     entrypoint: ["ega-ingest"]
 
   verify:
-    image: nbisweden/lega-base:latest
+    image: nbisweden/ega-base:latest
     deploy:
       restart_policy:
         condition: on-failure
@@ -200,7 +200,7 @@ services:
     entrypoint: ["ega-verify"]
 
   finalize:
-    image: nbisweden/lega-base:latest
+    image: nbisweden/ega-base:latest
     deploy:
       restart_policy:
         condition: on-failure
