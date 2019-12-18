@@ -6,7 +6,6 @@ Docker Swarm deployment of LocalEGA
 ## Pre-requisites
 
 - `mkcert` (https://github.com/FiloSottile/mkcert)
-- `crypt4gh` (https://github.com/uio-bmi/crypt4gh)
 
 ## How-to
 
@@ -14,4 +13,4 @@ Docker Swarm deployment of LocalEGA
 - `source bootstrap.sh`
 - `source deploy.sh`
 
-Cleaning up: `source sleanup.sh`
+Cleaning up: `source cleanup.sh`
