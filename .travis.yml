@@ -3,6 +3,10 @@ language: java
 jdk:
   - oraclejdk13
 
+cache:
+  directories:
+    - $HOME/.m2
+
 before_install: source install.sh
 
 install:
@@ -12,3 +16,5 @@ install:
 script:
   - sleep 120
   - mvn test
+
+after_failure: docker service logs

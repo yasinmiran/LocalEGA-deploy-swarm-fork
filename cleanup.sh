@@ -3,7 +3,7 @@
 docker stack rm LEGA
 sleep 10
 # shellcheck disable=SC2046
-docker rm $(docker ps -aq)
+docker rm -f $(docker ps -aq)
 # shellcheck disable=SC2046
 docker volume rm $(docker volume list -q)
 # shellcheck disable=SC2046
