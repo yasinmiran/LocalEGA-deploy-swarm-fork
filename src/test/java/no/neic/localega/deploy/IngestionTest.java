@@ -43,6 +43,8 @@ public class IngestionTest {
     private KeyPair senderKeyPair;
     private KeyPair recipientKeyPair;
     private String stableId;
+    private int fileId;
+    private String datasetId;
 
     @Before
     public void setup() throws IOException, GeneralSecurityException {
@@ -76,6 +78,7 @@ public class IngestionTest {
             ingest();
             Thread.sleep(10000); // wait for ingestion and verification to be finished
             finalise();
+            grantPermissions();
             verify();
         } catch (Throwable t) {
             log.error(t.getMessage(), t);
@@ -144,6 +147,7 @@ public class IngestionTest {
         connectionFactory.close();
     }
 
+    @SuppressWarnings({"SqlResolve", "SqlNoDataSourceInspection"})
     private void finalise() throws IOException, TimeoutException, NoSuchAlgorithmException, KeyManagementException, URISyntaxException, SQLException {
         log.info("Publishing finalization message to CentralEGA...");
         String dbHost = "localhost";
@@ -167,7 +171,7 @@ public class IngestionTest {
         if (resultSet.wasNull() || !resultSet.next()) {
             Assert.fail("Verification failed");
         }
-        int fileId = resultSet.getInt(1);
+        fileId = resultSet.getInt(1);
 
         log.info("File ID: {}", fileId);
 
@@ -195,35 +199,33 @@ public class IngestionTest {
         connectionFactory.close();
     }
 
-//    @SuppressWarnings({"SqlResolve", "SqlNoDataSourceInspection"})
-//    private void finalise() throws SQLException {
-//        log.info("Finalizing the submission...");
-//        String dbHost = "localhost";
-//        String port = "5432";
-//        String db = "lega";
-//        String url = String.format("jdbc:postgresql://%s:%s/%s", dbHost, port, db);
-//        Properties props = new Properties();
-//        props.setProperty("user", "lega_in");
-//        props.setProperty("password", System.getenv("DB_LEGA_IN_PASSWORD"));
-//        props.setProperty("ssl", "true");
-//        props.setProperty("application_name", "LocalEGA");
-//        props.setProperty("sslmode", "verify-full");
-//        props.setProperty("sslrootcert", new File("rootCA.pem").getAbsolutePath());
-//        props.setProperty("sslcert", new File("localhost+6-client.pem").getAbsolutePath());
-//        props.setProperty("sslkey", new File("localhost+6-client-key.der").getAbsolutePath());
-//        try {
-//            java.sql.Connection conn = DriverManager.getConnection(url, props);
-//            String sql = "update local_ega.files set stable_id = ? where inbox_path = ?";
-//            PreparedStatement statement = conn.prepareStatement(sql);
-//            statement.setString(1, stableId);
-//            statement.setString(2, encFile.getName());
-//            statement.executeUpdate();
-//        } catch (SQLException e) {
-//            log.error(e.getMessage(), e);
-//            throw e;
-//        }
-//        log.info("Submission finalized successfully");
-//    }
+    @SuppressWarnings({"SqlResolve", "SqlNoDataSourceInspection"})
+    private void grantPermissions() throws SQLException {
+        log.info("Granting permissions...");
+        datasetId = "EGAD" + UUID.randomUUID().toString().replace("-", "");
+
+        String dbHost = "localhost";
+        String port = "5432";
+        String db = "lega";
+        String url = String.format("jdbc:postgresql://%s:%s/%s", dbHost, port, db);
+        Properties props = new Properties();
+        props.setProperty("user", "lega_out");
+        props.setProperty("password", System.getenv("DB_LEGA_OUT_PASSWORD"));
+        props.setProperty("ssl", "true");
+        props.setProperty("application_name", "LocalEGA");
+        props.setProperty("sslmode", "verify-full");
+        props.setProperty("sslrootcert", new File("rootCA.pem").getAbsolutePath());
+        props.setProperty("sslcert", new File("localhost+6-client.pem").getAbsolutePath());
+        props.setProperty("sslkey", new File("localhost+6-client-key.der").getAbsolutePath());
+        java.sql.Connection conn = DriverManager.getConnection(url, props);
+        String sql = "insert into local_ega_ebi.filedataset (file_id, dataset_stable_id) values (?, ?)";
+        PreparedStatement statement = conn.prepareStatement(sql);
+        statement.setInt(1, fileId);
+        statement.setString(2, datasetId);
+        statement.executeUpdate();
+
+        log.info("Permissions granted successfully");
+    }
 
     @SuppressWarnings({"SqlResolve", "SqlNoDataSourceInspection"})
     private void verify() throws SQLException {
