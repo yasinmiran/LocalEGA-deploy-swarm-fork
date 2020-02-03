@@ -1,5 +1,7 @@
 package no.neic.localega.deploy;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -22,13 +24,20 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.*;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Base64;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
@@ -36,10 +45,16 @@ import java.util.concurrent.TimeoutException;
 @Slf4j
 public class IngestionTest {
 
+    public static final String BEGIN_PUBLIC_KEY = "-----BEGIN PUBLIC KEY-----";
+    public static final String END_PUBLIC_KEY = "-----END PUBLIC KEY-----";
+    public static final String BEGIN_PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----";
+    public static final String END_PRIVATE_KEY = "-----END PRIVATE KEY-----";
+
     private KeyUtils keyUtils = KeyUtils.getInstance();
 
     private File rawFile;
     private File encFile;
+    private String rawSHA256Checksum;
     private KeyPair senderKeyPair;
     private KeyPair recipientKeyPair;
     private String stableId;
@@ -55,7 +70,8 @@ public class IngestionTest {
         randomAccessFile.setLength(fileSize);
         randomAccessFile.close();
         byte[] bytes = DigestUtils.sha256(Files.newInputStream(rawFile.toPath()));
-        log.info("Checksum: " + Hex.encodeHexString(bytes));
+        rawSHA256Checksum = Hex.encodeHexString(bytes);
+        log.info("Raw SHA256 checksum: " + rawSHA256Checksum);
 
         log.info("Generating sender and recipient key-pairs...");
         senderKeyPair = keyUtils.generateKeyPair();
@@ -80,6 +96,7 @@ public class IngestionTest {
             finalise();
             grantPermissions();
             verify();
+            download();
         } catch (Throwable t) {
             log.error(t.getMessage(), t);
             Assert.fail();
@@ -95,7 +112,7 @@ public class IngestionTest {
                 .asString()
                 .getBody();
         String md5Hex = DigestUtils.md5Hex(Files.newInputStream(encFile.toPath()));
-        log.info("MD5 digest: {}", md5Hex);
+        log.info("Encrypted MD5 checksum: {}", md5Hex);
         String uploadURL = String.format("https://localhost/stream/%s?md5=%s", encFile.getName(), md5Hex);
         JsonNode jsonResponse = Unirest
                 .patch(uploadURL)
@@ -252,6 +269,71 @@ public class IngestionTest {
             Assert.fail("Verification failed");
         }
         log.info("Verification completed successfully");
+    }
+
+    private void download() throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
+        RSAPublicKey publicKey = getPublicKey();
+        RSAPrivateKey privateKey = getPrivateKey();
+        String token = JWT
+                .create()
+                .withSubject("dummy")
+                .withArrayClaim("authorities", new String[]{datasetId})
+                .sign(Algorithm.RSA256(publicKey, privateKey));
+
+        String datasets = Unirest
+                .get("https://localhost:8080/metadata/datasets")
+                .header("Authorization", "Bearer " + token)
+                .asString()
+                .getBody();
+        Assert.assertEquals(String.format("[\"%s\"]", datasetId).strip(), datasets.strip());
+
+        String files = Unirest
+                .get(String.format("https://localhost:8080/metadata/datasets/%s/files", datasetId))
+                .header("Authorization", "Bearer " + token)
+                .asString()
+                .getBody();
+        Assert.assertEquals(
+                String.format(
+                        "[{\"fileId\":\"%s\",\"datasetId\":\"%s\",\"displayFileName\":\"%s\",\"fileName\":\"%s\",\"fileSize\":10490240,\"unencryptedChecksum\":null,\"unencryptedChecksumType\":null,\"fileStatus\":\"READY\"}]\n",
+                        stableId,
+                        datasetId,
+                        encFile.getName(),
+                        fileId).strip(),
+                files.strip());
+
+//        byte[] file = Unirest
+//                .get(String.format("https://localhost:8080/files/%s", stableId))
+//                .header("Authorization", "Bearer " + token)
+//                .asBytes()
+//                .getBody();
+//        String obtainedChecksum = Hex.encodeHexString(DigestUtils.sha256(file));
+//        Assert.assertEquals(rawSHA256Checksum, obtainedChecksum);
+    }
+
+    private RSAPublicKey getPublicKey() throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        String jwtPublicKey = FileUtils.readFileToString(new File("jwt.pub.pem"), Charset.defaultCharset());
+        String encodedKey = jwtPublicKey
+                .replace(BEGIN_PUBLIC_KEY, "")
+                .replace(END_PUBLIC_KEY, "")
+                .replace(System.lineSeparator(), "")
+                .replace(" ", "")
+                .trim();
+        byte[] decodedKey = Base64.getDecoder().decode(encodedKey);
+        return (RSAPublicKey) keyFactory.generatePublic(new X509EncodedKeySpec(decodedKey));
+    }
+
+    private RSAPrivateKey getPrivateKey() throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        String jwtPublicKey = FileUtils.readFileToString(new File("jwt.priv.pem"), Charset.defaultCharset());
+        String encodedKey = jwtPublicKey
+                .replace(BEGIN_PRIVATE_KEY, "")
+                .replace(END_PRIVATE_KEY, "")
+                .replace(System.lineSeparator(), "")
+                .replace(" ", "")
+                .trim();
+        byte[] decodedKey = Base64.getDecoder().decode(encodedKey);
+        return (RSAPrivateKey) keyFactory.generatePrivate(new PKCS8EncodedKeySpec(decodedKey));
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
