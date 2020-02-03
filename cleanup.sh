@@ -11,4 +11,4 @@ docker config rm $(docker config list -q)
 
 # shellcheck disable=SC2035
 # shellcheck disable=SC2216
-rm conf.ini rootCA.pem rootCA-key.pem localhost+*.pem *.p12 localhost+*.der docker-stack.yml ega*.pem ega*.pass
+rm conf.ini rootCA.pem rootCA-key.pem localhost+*.pem *.p12 localhost+*.der docker-stack.yml jwt.*.pem ega*.pem ega*.pass
