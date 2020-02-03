@@ -20,6 +20,9 @@ docker config create client.pem localhost+6-client.pem
 docker config create client-key.pem localhost+6-client-key.pem
 docker config create client-key.der localhost+6-client-key.der
 docker config create client.p12 localhost+6-client.p12
+
+openssl genpkey -algorithm RSA -out jwt.priv.pem -pkeyopt rsa_keygen_bits:4096
+openssl rsa -pubout -in jwt.priv.pem -out jwt.pub.pem
 docker config create jwt.pub.pem jwt.pub.pem
 
 echo "${KEY_PASSWORD}" > ega.sec.pass

@@ -174,6 +174,7 @@ public class IngestionTest {
         log.info("Verification completed successfully");
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @After
     public void teardown() {
         rawFile.delete();
