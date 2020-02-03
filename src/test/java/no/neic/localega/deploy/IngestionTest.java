@@ -186,7 +186,7 @@ public class IngestionTest {
         statement.setString(1, encFile.getName());
         ResultSet resultSet = statement.executeQuery();
         if (resultSet.wasNull() || !resultSet.next()) {
-            Assert.fail("Verification failed");
+            Assert.fail("Finalization failed");
         }
         fileId = resultSet.getInt(1);
 
@@ -301,13 +301,13 @@ public class IngestionTest {
                         fileId).strip(),
                 files.strip());
 
-//        byte[] file = Unirest
-//                .get(String.format("https://localhost:8080/files/%s", stableId))
-//                .header("Authorization", "Bearer " + token)
-//                .asBytes()
-//                .getBody();
-//        String obtainedChecksum = Hex.encodeHexString(DigestUtils.sha256(file));
-//        Assert.assertEquals(rawSHA256Checksum, obtainedChecksum);
+        byte[] file = Unirest
+                .get(String.format("https://localhost:8080/files/%s", stableId))
+                .header("Authorization", "Bearer " + token)
+                .asBytes()
+                .getBody();
+        String obtainedChecksum = Hex.encodeHexString(DigestUtils.sha256(file));
+        Assert.assertEquals(rawSHA256Checksum, obtainedChecksum);
     }
 
     private RSAPublicKey getPublicKey() throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {

@@ -25,7 +25,8 @@ openssl genpkey -algorithm RSA -out jwt.priv.pem -pkeyopt rsa_keygen_bits:4096
 openssl rsa -pubout -in jwt.priv.pem -out jwt.pub.pem
 docker config create jwt.pub.pem jwt.pub.pem
 
-echo "${KEY_PASSWORD}" > ega.sec.pass
+# shellcheck disable=SC2059
+printf "${KEY_PASSWORD}" > ega.sec.pass
 crypt4gh -g ega -kf crypt4gh -kp "${KEY_PASSWORD}"
 docker config create ega.sec.pem ega.sec.pem
 docker config create ega.sec.pass ega.sec.pass
