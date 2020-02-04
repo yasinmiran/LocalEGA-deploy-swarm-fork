@@ -232,8 +232,6 @@ services:
         window: 120s
     environment:
       - S3_PORT
-      - S3_BUCKET
-      - S3_SECURE
       - KEYSTORE_PASSWORD=${SERVER_CERT_PASSWORD}
       - POSTGRES_PASSWORD=${DB_LEGA_OUT_PASSWORD}
       - S3_ACCESS_KEY=${MINIO_ACCESS_KEY}

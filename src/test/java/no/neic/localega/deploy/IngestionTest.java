@@ -9,20 +9,19 @@ import com.rabbitmq.client.ConnectionFactory;
 import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
 import lombok.extern.slf4j.Slf4j;
+import no.uio.ifi.crypt4gh.stream.Crypt4GHInputStream;
 import no.uio.ifi.crypt4gh.stream.Crypt4GHOutputStream;
 import no.uio.ifi.crypt4gh.util.KeyUtils;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -55,8 +54,6 @@ public class IngestionTest {
     private File rawFile;
     private File encFile;
     private String rawSHA256Checksum;
-    private KeyPair senderKeyPair;
-    private KeyPair recipientKeyPair;
     private String stableId;
     private int fileId;
     private String datasetId;
@@ -74,17 +71,15 @@ public class IngestionTest {
         log.info("Raw SHA256 checksum: " + rawSHA256Checksum);
 
         log.info("Generating sender and recipient key-pairs...");
-        senderKeyPair = keyUtils.generateKeyPair();
-        recipientKeyPair = keyUtils.generateKeyPair();
-
+        KeyPair senderKeyPair = keyUtils.generateKeyPair();
 
         log.info("Encrypting the file with Crypt4GH...");
         encFile = new File(rawFile.getName() + ".enc");
         PublicKey localEGAInstancePublicKey = keyUtils.readPublicKey(new File("ega.pub.pem"));
-        FileOutputStream fileOutputStream = new FileOutputStream(encFile);
-        Crypt4GHOutputStream crypt4GHOutputStream = new Crypt4GHOutputStream(fileOutputStream, senderKeyPair.getPrivate(), localEGAInstancePublicKey);
-        FileUtils.copyFile(rawFile, crypt4GHOutputStream);
-        crypt4GHOutputStream.close();
+        try (FileOutputStream fileOutputStream = new FileOutputStream(encFile);
+             Crypt4GHOutputStream crypt4GHOutputStream = new Crypt4GHOutputStream(fileOutputStream, senderKeyPair.getPrivate(), localEGAInstancePublicKey)) {
+            FileUtils.copyFile(rawFile, crypt4GHOutputStream);
+        }
     }
 
     @Test
@@ -271,7 +266,7 @@ public class IngestionTest {
         log.info("Verification completed successfully");
     }
 
-    private void download() throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
+    private void download() throws GeneralSecurityException, IOException {
         RSAPublicKey publicKey = getPublicKey();
         RSAPrivateKey privateKey = getPrivateKey();
         String token = JWT
@@ -307,6 +302,24 @@ public class IngestionTest {
                 .asBytes()
                 .getBody();
         String obtainedChecksum = Hex.encodeHexString(DigestUtils.sha256(file));
+        Assert.assertEquals(rawSHA256Checksum, obtainedChecksum);
+
+        KeyPair recipientKeyPair = keyUtils.generateKeyPair();
+        StringWriter stringWriter = new StringWriter();
+        keyUtils.writeCrypt4GHKey(stringWriter, recipientKeyPair.getPublic(), null);
+        String key = stringWriter.toString();
+        file = Unirest
+                .get(String.format("https://localhost:8080/files/%s?destinationFormat=CRYPT4GH", stableId))
+                .header("Authorization", "Bearer " + token)
+                .header("Public-Key", key)
+                .asBytes()
+                .getBody();
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(file);
+             Crypt4GHInputStream crypt4GHInputStream = new Crypt4GHInputStream(byteArrayInputStream, recipientKeyPair.getPrivate())) {
+            IOUtils.copyLarge(crypt4GHInputStream, byteArrayOutputStream);
+        }
+        obtainedChecksum = Hex.encodeHexString(DigestUtils.sha256(byteArrayOutputStream.toByteArray()));
         Assert.assertEquals(rawSHA256Checksum, obtainedChecksum);
     }
 
