@@ -43,8 +43,6 @@ services:
         target: /etc/ega/ssl/server.cert
       - source: client.p12
         target: /etc/ega/ssl/client.cert
-    volumes:
-      - tsd:/tsd/p11/data/durable/file-import/
 
   db:
     image: nbisweden/ega-db:m7-v2
