@@ -27,7 +27,7 @@ docker config create jwt.pub.pem jwt.pub.pem
 
 # shellcheck disable=SC2059
 printf "${KEY_PASSWORD}" > ega.sec.pass
-crypt4gh -g ega -kf crypt4gh -kp "${KEY_PASSWORD}"
+crypt4gh generate -n ega -p "${KEY_PASSWORD}"
 docker config create ega.sec.pem ega.sec.pem
 docker config create ega.sec.pass ega.sec.pass
 docker config create ega.pub.pem ega.pub.pem
