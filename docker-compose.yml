@@ -2,6 +2,7 @@ version: '3.3'
 
 services:
 
+  # TSD simulation
   tsd:
     image: uiobmi/tsd-stub:latest
     deploy:
@@ -18,31 +19,6 @@ services:
         target: /etc/ega/ssl/server.cert
     volumes:
       - tsd:/tsd/p11/data/durable/file-import/
-        
-  proxy:
-    image: uiobmi/localega-tsd-proxy:latest
-    ports:
-      - 443:8080
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        window: 120s
-    environment:
-      - ROOT_CERT_PASSWORD
-      - SERVER_CERT_PASSWORD
-      - CLIENT_CERT_PASSWORD
-      - CEGA_USERNAME
-      - CEGA_PASSWORD
-      - TSD_HOST
-      - TSD_ACCESS_KEY
-    secrets:
-      - source: rootCA.p12
-        target: /etc/ega/ssl/CA.cert
-      - source: server.p12
-        target: /etc/ega/ssl/server.cert
-      - source: client.p12
-        target: /etc/ega/ssl/client.cert
 
   db:
     image: nbisweden/ega-db:m7-v2
@@ -80,6 +56,32 @@ services:
     volumes:
       - db:/ega/data
 
+  # Public stack
+  proxy:
+    image: uiobmi/localega-tsd-proxy:latest
+    ports:
+      - 443:8080
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - ROOT_CERT_PASSWORD
+      - SERVER_CERT_PASSWORD
+      - CLIENT_CERT_PASSWORD
+      - CEGA_USERNAME
+      - CEGA_PASSWORD
+      - TSD_HOST
+      - TSD_ACCESS_KEY
+    secrets:
+      - source: rootCA.p12
+        target: /etc/ega/ssl/CA.cert
+      - source: server.p12
+        target: /etc/ega/ssl/server.cert
+      - source: client.p12
+        target: /etc/ega/ssl/client.cert
+
   public-mq:
     image: uiobmi/localega-broker-public:latest
     deploy:
@@ -104,6 +106,7 @@ services:
       - source: client-key.pem
         target: /etc/ega/ssl.key
 
+  # Private stack
   private-mq:
     image: uiobmi/localega-broker-private:latest
     deploy:
