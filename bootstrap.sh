@@ -11,26 +11,26 @@ openssl pkcs12 -export -out localhost+6-client.p12 -in localhost+6-client.pem -i
 openssl pkcs8 -topk8 -inform PEM -in localhost+6-client-key.pem -outform DER -nocrypt -out localhost+6-client-key.der
 
 docker swarm init
-docker config create rootCA.pem rootCA.pem
-docker config create rootCA.p12 rootCA.p12
-docker config create server.pem localhost+6.pem
-docker config create server-key.pem localhost+6-key.pem
-docker config create server.p12 localhost+6.p12
-docker config create client.pem localhost+6-client.pem
-docker config create client-key.pem localhost+6-client-key.pem
-docker config create client-key.der localhost+6-client-key.der
-docker config create client.p12 localhost+6-client.p12
+docker secret create rootCA.pem rootCA.pem
+docker secret create rootCA.p12 rootCA.p12
+docker secret create server.pem localhost+6.pem
+docker secret create server-key.pem localhost+6-key.pem
+docker secret create server.p12 localhost+6.p12
+docker secret create client.pem localhost+6-client.pem
+docker secret create client-key.pem localhost+6-client-key.pem
+docker secret create client-key.der localhost+6-client-key.der
+docker secret create client.p12 localhost+6-client.p12
 
 openssl genpkey -algorithm RSA -out jwt.priv.pem -pkeyopt rsa_keygen_bits:4096
 openssl rsa -pubout -in jwt.priv.pem -out jwt.pub.pem
-docker config create jwt.pub.pem jwt.pub.pem
+docker secret create jwt.pub.pem jwt.pub.pem
 
 # shellcheck disable=SC2059
 printf "${KEY_PASSWORD}" > ega.sec.pass
 crypt4gh generate -n ega -p "${KEY_PASSWORD}"
-docker config create ega.sec.pem ega.sec.pem
-docker config create ega.sec.pass ega.sec.pass
-docker config create ega.pub.pem ega.pub.pem
+docker secret create ega.sec.pem ega.sec.pem
+docker secret create ega.sec.pass ega.sec.pass
+docker secret create ega.pub.pem ega.pub.pem
 
 cp default.conf.ini conf.ini
 perl -i -pe 's!KEY_PASSWORD!$ENV{"KEY_PASSWORD"}!g' conf.ini

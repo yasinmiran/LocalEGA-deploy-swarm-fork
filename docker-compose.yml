@@ -11,7 +11,7 @@ services:
         window: 120s
     environment:
       - CERT_PASSWORD=${SERVER_CERT_PASSWORD}
-    configs:
+    secrets:
       - source: rootCA.pem
         target: /etc/ega/ssl/CA.cert
       - source: server.p12
@@ -36,7 +36,7 @@ services:
       - CEGA_PASSWORD
       - TSD_HOST
       - TSD_ACCESS_KEY
-    configs:
+    secrets:
       - source: rootCA.p12
         target: /etc/ega/ssl/CA.cert
       - source: server.p12
@@ -61,7 +61,7 @@ services:
       - PG_SERVER_KEY=/etc/ega/pg.key
       - PG_CA=/etc/ega/CA.cert
       - PG_VERIFY_PEER=1
-    configs:
+    secrets:
       - source: server.pem
         target: /etc/ega/pg.cert
         uid: '70'
@@ -92,7 +92,7 @@ services:
       - PASSWORD_HASH=${PRIVATE_BROKER_HASH}
       - PRIVATE_CONNECTION
       - CEGA_CONNECTION
-    configs:
+    secrets:
       - source: server.pem
         target: /etc/rabbitmq/ssl.cert
       - source: server-key.pem
@@ -114,7 +114,7 @@ services:
     environment:
       - USER_NAME=${PRIVATE_BROKER_USER}
       - PASSWORD_HASH=${PRIVATE_BROKER_HASH}
-    configs:
+    secrets:
       - source: server.pem
         target: /etc/rabbitmq/ssl.cert
       - source: server-key.pem
@@ -132,7 +132,7 @@ services:
     environment:
       - MINIO_ACCESS_KEY
       - MINIO_SECRET_KEY
-    configs:
+    secrets:
       - source: server.pem
         target: /root/.minio/certs/public.crt
       - source: server-key.pem
@@ -153,6 +153,7 @@ services:
     configs:
       - source: conf.ini
         target: /etc/ega/conf.ini
+    secrets:
       - source: client.pem
         target: /etc/ega/ssl.cert
       - source: client-key.pem
@@ -180,6 +181,7 @@ services:
     configs:
       - source: conf.ini
         target: /etc/ega/conf.ini
+    secrets:
       - source: ega.sec.pem
         target: /etc/ega/ega.sec
         uid: '1000'
@@ -207,6 +209,7 @@ services:
     configs:
       - source: conf.ini
         target: /etc/ega/conf.ini
+    secrets:
       - source: client.pem
         target: /etc/ega/ssl.cert
       - source: client-key.pem
@@ -234,7 +237,7 @@ services:
       - POSTGRES_PASSWORD=${DB_LEGA_OUT_PASSWORD}
       - S3_ACCESS_KEY=${MINIO_ACCESS_KEY}
       - S3_SECRET_KEY=${MINIO_SECRET_KEY}
-    configs:
+    secrets:
       - source: rootCA.pem
         target: /etc/ega/ssl/CA.cert
       - source: rootCA.pem
@@ -258,6 +261,10 @@ volumes:
   vault:
 
 configs:
+  conf.ini:
+    external: true
+
+secrets:
   rootCA.pem:
     external: true
   rootCA.p12:
@@ -275,8 +282,6 @@ configs:
   client-key.der:
     external: true
   client.p12:
-    external: true
-  conf.ini:
     external: true
   ega.sec.pem:
     external: true

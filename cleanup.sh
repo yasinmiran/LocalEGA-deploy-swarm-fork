@@ -8,6 +8,8 @@ docker rm -f $(docker ps -aq)
 docker volume rm $(docker volume list -q)
 # shellcheck disable=SC2046
 docker config rm $(docker config list -q)
+# shellcheck disable=SC2046
+docker secret rm $(docker secret list -q)
 
 # shellcheck disable=SC2035
 # shellcheck disable=SC2216
