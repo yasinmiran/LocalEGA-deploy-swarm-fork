@@ -3,6 +3,7 @@
 mkcert -install
 cp "$(mkcert -CAROOT)/rootCA.pem" rootCA.pem
 cp "$(mkcert -CAROOT)/rootCA-key.pem" rootCA-key.pem
+chmod 600 rootCA-key.pem
 openssl pkcs12 -export -out rootCA.p12 -in rootCA.pem -inkey rootCA-key.pem -passout pass:"${ROOT_CERT_PASSWORD}"
 mkcert localhost db vault public-mq private-mq tsd proxy
 openssl pkcs12 -export -out localhost+6.p12 -in localhost+6.pem -inkey localhost+6-key.pem -passout pass:"${SERVER_CERT_PASSWORD}"
@@ -37,6 +38,8 @@ perl -i -pe 's!KEY_PASSWORD!$ENV{"KEY_PASSWORD"}!g' conf.ini
 perl -i -pe 's!MINIO_ACCESS_KEY!$ENV{"MINIO_ACCESS_KEY"}!g' conf.ini
 perl -i -pe 's!MINIO_SECRET_KEY!$ENV{"MINIO_SECRET_KEY"}!g' conf.ini
 perl -i -pe 's!DB_HOST!$ENV{"DB_HOST"}!g' conf.ini
+perl -i -pe 's!DB_DATABASE_NAME!$ENV{"DB_DATABASE_NAME"}!g' conf.ini
+perl -i -pe 's!DB_LEGA_IN_USER!$ENV{"DB_LEGA_IN_USER"}!g' conf.ini
 perl -i -pe 's!DB_LEGA_IN_PASSWORD!$ENV{"DB_LEGA_IN_PASSWORD"}!g' conf.ini
 perl -i -pe 's!MQ_CONNECTION!$ENV{"MQ_CONNECTION"}!g' conf.ini
 docker config create conf.ini conf.ini
