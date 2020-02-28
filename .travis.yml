@@ -14,7 +14,7 @@ install:
   - source deploy.sh
 
 script:
-  - sleep 180
+  - sleep 300
   - mvn test
 
 after_failure:
