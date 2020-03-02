@@ -202,7 +202,8 @@ buildNumber.properties
 conf.ini
 ega.sec.pass
 elasticsearch.yml
+kibana.yml
 logstash.conf
 logstash.yml
-kibana.yml
+logstash-logger.yaml
 docker-stack.yml

@@ -165,6 +165,8 @@ services:
         mode: 0600
       - source: rootCA.pem
         target: /etc/ega/CA.cert
+      - source: logstash-logger.yaml
+        target: /etc/ega/logstash-logger.yaml
     volumes:
       - tsd:/ega/inbox
     user: lega
@@ -197,6 +199,8 @@ services:
         mode: 0600
       - source: rootCA.pem
         target: /etc/ega/CA.cert
+      - source: logstash-logger.yaml
+        target: /etc/ega/logstash-logger.yaml
     user: lega
     entrypoint: ["ega-verify"]
 
@@ -219,6 +223,8 @@ services:
         mode: 0600
       - source: rootCA.pem
         target: /etc/ega/CA.cert
+      - source: logstash-logger.yaml
+        target: /etc/ega/logstash-logger.yaml
     user: lega
     entrypoint: ["ega-finalize"]
 
@@ -357,11 +363,13 @@ secrets:
     external: true
   jwt.pub.pem:
     external: true
+  kibana.yml:
+    external: true
   elasticsearch.yml:
     external: true
   logstash.yml:
     external: true
   logstash.conf:
     external: true
-  kibana.yml:
+  logstash-logger.yaml:
     external: true

@@ -59,4 +59,9 @@ cp default.logstash.conf logstash.conf
 perl -i -pe 's!ELASTIC_PASSWORD!$ENV{"ELASTIC_PASSWORD"}!g' logstash.conf
 docker secret create logstash.conf logstash.conf
 
+cp default.logstash-logger.yaml logstash-logger.yaml
+perl -i -pe 's!LOGSTASH_HOST!$ENV{"LOGSTASH_HOST"}!g' logstash-logger.yaml
+perl -i -pe 's!LOGSTASH_PORT!$ENV{"LOGSTASH_PORT"}!g' logstash-logger.yaml
+docker secret create logstash-logger.yaml logstash-logger.yaml
+
 docker-compose config > docker-stack.yml
