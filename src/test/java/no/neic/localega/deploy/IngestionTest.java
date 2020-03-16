@@ -1,6 +1,5 @@
 package no.neic.localega.deploy;
 
-import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
@@ -269,11 +268,29 @@ public class IngestionTest {
     private void download() throws GeneralSecurityException, IOException {
         RSAPublicKey publicKey = getPublicKey();
         RSAPrivateKey privateKey = getPrivateKey();
-        String token = JWT
-                .create()
-                .withSubject("dummy")
-                .withArrayClaim("authorities", new String[]{datasetId})
-                .sign(Algorithm.RSA256(publicKey, privateKey));
+        byte[] visaHeader = Base64.getEncoder().encode(("{\n" +
+                "  \"jku\": \"https://login.elixir-czech.org/oidc/jwk\",\n" +
+                "  \"kid\": \"rsa1\",\n" +
+                "  \"typ\": \"JWT\",\n" +
+                "  \"alg\": \"RS256\"\n" +
+                "}").getBytes());
+        byte[] visaPayload = Base64.getEncoder().encode(String.format("{\n" +
+                "  \"sub\": \"dummy@elixir-europe.org\",\n" +
+                "  \"ga4gh_visa_v1\": {\n" +
+                "    \"asserted\": 1583757401,\n" +
+                "    \"by\": \"dac\",\n" +
+                "    \"source\": \"https://login.elixir-czech.org/google-idp/\",\n" +
+                "    \"type\": \"ControlledAccessGrants\",\n" +
+                "    \"value\": \"https://ega.tsd.usit.uio.no/datasets/%s/\"\n" +
+                "  },\n" +
+                "  \"iss\": \"https://login.elixir-czech.org/oidc/\",\n" +
+                "  \"exp\": 32503680000,\n" +
+                "  \"iat\": 1583757671,\n" +
+                "  \"jti\": \"f520d56f-e51a-431c-94e1-2a3f9da8b0c9\"\n" +
+                "}", datasetId).getBytes());
+        byte[] visaSignature = Algorithm.RSA256(publicKey, privateKey).sign(visaHeader, visaPayload);
+        String token = new String(visaHeader) + "." + new String(visaPayload) + "." + Base64.getEncoder().encodeToString(visaSignature);
+        log.info("Visa JWT token: {}", token);
 
         String datasets = Unirest
                 .get("https://localhost:8080/metadata/datasets")

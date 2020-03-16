@@ -259,7 +259,9 @@ services:
       - source: client-key.der
         target: /etc/ega/ssl/client.key
       - source: jwt.pub.pem
-        target: /etc/ega/jwt/key.pem
+        target: /etc/ega/jwt/passport.pem
+      - source: jwt.pub.pem
+        target: /etc/ega/jwt/visa.pem
       - source: ega.sec.pem
         target: /etc/ega/crypt4gh/key.pem
       - source: ega.sec.pass
