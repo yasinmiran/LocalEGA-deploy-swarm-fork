@@ -304,13 +304,15 @@ public class IngestionTest {
                 .header("Authorization", "Bearer " + token)
                 .asString()
                 .getBody();
+        System.out.println("files = " + files);
         Assert.assertEquals(
                 String.format(
-                        "[{\"fileId\":\"%s\",\"datasetId\":\"%s\",\"displayFileName\":\"%s\",\"fileName\":\"%s\",\"fileSize\":10490240,\"unencryptedChecksum\":null,\"unencryptedChecksumType\":null,\"fileStatus\":\"READY\"}]\n",
+                        "[{\"fileId\":\"%s\",\"datasetId\":\"%s\",\"displayFileName\":\"%s\",\"fileName\":\"%s\",\"fileSize\":10490240,\"unencryptedChecksum\":\"%s\",\"unencryptedChecksumType\":\"SHA256\",\"fileStatus\":\"READY\"}]\n",
                         stableId,
                         datasetId,
                         encFile.getName(),
-                        fileId).strip(),
+                        fileId,
+                        rawSHA256Checksum).strip(),
                 files.strip());
 
         byte[] file = Unirest

@@ -21,7 +21,7 @@ services:
       - tsd:/tsd/p11/data/durable/file-import/
 
   db:
-    image: nbisweden/ega-db:m7-v2
+    image: neicnordic/sda-db:latest
     ports:
       - 5432:5432
     deploy:
@@ -54,7 +54,7 @@ services:
         gid: '70'
         mode: 0600
     volumes:
-      - db:/ega/data
+      - db:/ega
 
   # Public stack
   proxy:
@@ -147,7 +147,7 @@ services:
     command: server /data
 
   ingest:
-    image: nbisweden/ega-base:latest
+    image: neicnordic/sda-base:latest
     deploy:
       restart_policy:
         condition: on-failure
@@ -173,7 +173,7 @@ services:
     entrypoint: ["ega-ingest"]
 
   verify:
-    image: nbisweden/ega-base:latest
+    image: neicnordic/sda-base:latest
     deploy:
       restart_policy:
         condition: on-failure
@@ -205,7 +205,7 @@ services:
     entrypoint: ["ega-verify"]
 
   finalize:
-    image: nbisweden/ega-base:latest
+    image: neicnordic/sda-base:latest
     deploy:
       restart_policy:
         condition: on-failure
@@ -229,7 +229,7 @@ services:
     entrypoint: ["ega-finalize"]
 
   doa:
-    image: nbisweden/ega-doa:latest
+    image: neicnordic/sda-doa:latest
     ports:
       - 8080:8080
     deploy:
