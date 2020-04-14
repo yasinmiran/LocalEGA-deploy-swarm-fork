@@ -70,8 +70,8 @@ services:
       - ROOT_CERT_PASSWORD
       - SERVER_CERT_PASSWORD
       - CLIENT_CERT_PASSWORD
-      - CEGA_USERNAME
-      - CEGA_PASSWORD
+      - CLIENT_ID=test
+      - CLIENT_SECRET=test
       - TSD_HOST
       - TSD_ACCESS_KEY
     secrets:
@@ -81,6 +81,10 @@ services:
         target: /etc/ega/ssl/server.cert
       - source: client.p12
         target: /etc/ega/ssl/client.cert
+      - source: jwt.pub.pem
+        target: /etc/ega/jwt/passport.pem
+      - source: jwt.pub.pem
+        target: /etc/ega/jwt/visa.pem
 
   public-mq:
     image: uiobmi/localega-broker-public:latest

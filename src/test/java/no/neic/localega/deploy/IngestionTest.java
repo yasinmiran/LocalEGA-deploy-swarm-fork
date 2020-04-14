@@ -15,6 +15,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -79,6 +80,8 @@ public class IngestionTest {
              Crypt4GHOutputStream crypt4GHOutputStream = new Crypt4GHOutputStream(fileOutputStream, senderKeyPair.getPrivate(), localEGAInstancePublicKey)) {
             FileUtils.copyFile(rawFile, crypt4GHOutputStream);
         }
+
+        Unirest.primaryInstance().config().verifySsl(false).hostnameVerifier(NoopHostnameVerifier.INSTANCE);
     }
 
     @Test
@@ -97,14 +100,10 @@ public class IngestionTest {
         }
     }
 
-    private void upload() throws IOException {
+    private void upload() throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
         log.info("Uploading a file through a proxy...");
-        Unirest.config().verifySsl(false);
-        String token = Unirest
-                .get("https://localhost/cega")
-                .basicAuth("dummy", "dummy")
-                .asString()
-                .getBody();
+        String token = generateVisaToken("upload");
+        log.info("Visa JWT token: {}", token);
         String md5Hex = DigestUtils.md5Hex(Files.newInputStream(encFile.toPath()));
         log.info("Encrypted MD5 checksum: {}", md5Hex);
         String uploadURL = String.format("https://localhost/stream/%s?md5=%s", encFile.getName(), md5Hex);
@@ -114,7 +113,6 @@ public class IngestionTest {
                 .body(FileUtils.readFileToByteArray(encFile))
                 .asJson()
                 .getBody();
-        Assert.assertEquals(201, jsonResponse.getObject().getInt("statusCode"));
         String uploadId = jsonResponse.getObject().getString("id");
         log.info("Upload ID: {}", uploadId);
         String finalizeURL = String.format("https://localhost/stream/%s?uploadId=%s&chunk=end&md5=%s&fileSize=%s",
@@ -266,30 +264,7 @@ public class IngestionTest {
     }
 
     private void download() throws GeneralSecurityException, IOException {
-        RSAPublicKey publicKey = getPublicKey();
-        RSAPrivateKey privateKey = getPrivateKey();
-        byte[] visaHeader = Base64.getEncoder().encode(("{\n" +
-                "  \"jku\": \"https://login.elixir-czech.org/oidc/jwk\",\n" +
-                "  \"kid\": \"rsa1\",\n" +
-                "  \"typ\": \"JWT\",\n" +
-                "  \"alg\": \"RS256\"\n" +
-                "}").getBytes());
-        byte[] visaPayload = Base64.getEncoder().encode(String.format("{\n" +
-                "  \"sub\": \"dummy@elixir-europe.org\",\n" +
-                "  \"ga4gh_visa_v1\": {\n" +
-                "    \"asserted\": 1583757401,\n" +
-                "    \"by\": \"dac\",\n" +
-                "    \"source\": \"https://login.elixir-czech.org/google-idp/\",\n" +
-                "    \"type\": \"ControlledAccessGrants\",\n" +
-                "    \"value\": \"https://ega.tsd.usit.uio.no/datasets/%s/\"\n" +
-                "  },\n" +
-                "  \"iss\": \"https://login.elixir-czech.org/oidc/\",\n" +
-                "  \"exp\": 32503680000,\n" +
-                "  \"iat\": 1583757671,\n" +
-                "  \"jti\": \"f520d56f-e51a-431c-94e1-2a3f9da8b0c9\"\n" +
-                "}", datasetId).getBytes());
-        byte[] visaSignature = Algorithm.RSA256(publicKey, privateKey).sign(visaHeader, visaPayload);
-        String token = new String(visaHeader) + "." + new String(visaPayload) + "." + Base64.getEncoder().encodeToString(visaSignature);
+        String token = generateVisaToken(datasetId);
         log.info("Visa JWT token: {}", token);
 
         String datasets = Unirest
@@ -299,12 +274,6 @@ public class IngestionTest {
                 .getBody();
         Assert.assertEquals(String.format("[\"%s\"]", datasetId).strip(), datasets.strip());
 
-        String files = Unirest
-                .get(String.format("https://localhost:8080/metadata/datasets/%s/files", datasetId))
-                .header("Authorization", "Bearer " + token)
-                .asString()
-                .getBody();
-        System.out.println("files = " + files);
         Assert.assertEquals(
                 String.format(
                         "[{\"fileId\":\"%s\",\"datasetId\":\"%s\",\"displayFileName\":\"%s\",\"fileName\":\"%s\",\"fileSize\":10490240,\"unencryptedChecksum\":\"%s\",\"unencryptedChecksumType\":\"SHA256\",\"fileStatus\":\"READY\"}]\n",
@@ -313,7 +282,11 @@ public class IngestionTest {
                         encFile.getName(),
                         fileId,
                         rawSHA256Checksum).strip(),
-                files.strip());
+                Unirest
+                        .get(String.format("https://localhost:8080/metadata/datasets/%s/files", datasetId))
+                        .header("Authorization", "Bearer " + token)
+                        .asString()
+                        .getBody().strip());
 
         byte[] file = Unirest
                 .get(String.format("https://localhost:8080/files/%s", stableId))
@@ -340,6 +313,33 @@ public class IngestionTest {
         }
         obtainedChecksum = Hex.encodeHexString(DigestUtils.sha256(byteArrayOutputStream.toByteArray()));
         Assert.assertEquals(rawSHA256Checksum, obtainedChecksum);
+    }
+
+    private String generateVisaToken(String resource) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
+        RSAPublicKey publicKey = getPublicKey();
+        RSAPrivateKey privateKey = getPrivateKey();
+        byte[] visaHeader = Base64.getEncoder().encode(("{\n" +
+                "  \"jku\": \"https://login.elixir-czech.org/oidc/jwk\",\n" +
+                "  \"kid\": \"rsa1\",\n" +
+                "  \"typ\": \"JWT\",\n" +
+                "  \"alg\": \"RS256\"\n" +
+                "}").getBytes());
+        byte[] visaPayload = Base64.getEncoder().encode(String.format("{\n" +
+                "  \"sub\": \"dummy@elixir-europe.org\",\n" +
+                "  \"ga4gh_visa_v1\": {\n" +
+                "    \"asserted\": 1583757401,\n" +
+                "    \"by\": \"dac\",\n" +
+                "    \"source\": \"https://login.elixir-czech.org/google-idp/\",\n" +
+                "    \"type\": \"ControlledAccessGrants\",\n" +
+                "    \"value\": \"https://ega.tsd.usit.uio.no/datasets/%s/\"\n" +
+                "  },\n" +
+                "  \"iss\": \"https://login.elixir-czech.org/oidc/\",\n" +
+                "  \"exp\": 32503680000,\n" +
+                "  \"iat\": 1583757671,\n" +
+                "  \"jti\": \"f520d56f-e51a-431c-94e1-2a3f9da8b0c9\"\n" +
+                "}", resource).getBytes());
+        byte[] visaSignature = Algorithm.RSA256(publicKey, privateKey).sign(visaHeader, visaPayload);
+        return new String(visaHeader) + "." + new String(visaPayload) + "." + Base64.getEncoder().encodeToString(visaSignature);
     }
 
     private RSAPublicKey getPublicKey() throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
