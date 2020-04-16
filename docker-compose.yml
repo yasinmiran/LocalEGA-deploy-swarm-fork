@@ -72,6 +72,8 @@ services:
       - CLIENT_CERT_PASSWORD
       - CLIENT_ID=test
       - CLIENT_SECRET=test
+      - CEGA_USERNAME
+      - CEGA_PASSWORD
       - TSD_HOST
       - TSD_ACCESS_KEY
     secrets:

@@ -109,7 +109,8 @@ public class IngestionTest {
         String uploadURL = String.format("https://localhost/stream/%s?md5=%s", encFile.getName(), md5Hex);
         JsonNode jsonResponse = Unirest
                 .patch(uploadURL)
-                .header("Authorization", "Bearer " + token)
+                .basicAuth("dummy", "dummy")
+                .header("Proxy-Authorization", "Bearer " + token)
                 .body(FileUtils.readFileToByteArray(encFile))
                 .asJson()
                 .getBody();
@@ -122,7 +123,8 @@ public class IngestionTest {
                 FileUtils.sizeOf(encFile));
         jsonResponse = Unirest
                 .patch(finalizeURL)
-                .header("Authorization", "Bearer " + token)
+                .basicAuth("dummy", "dummy")
+                .header("Proxy-Authorization", "Bearer " + token)
                 .asJson()
                 .getBody();
         Assert.assertEquals(201, jsonResponse.getObject().getInt("statusCode"));
