@@ -54,6 +54,7 @@ public class IngestionTest {
     private File rawFile;
     private File encFile;
     private String rawSHA256Checksum;
+    private String encSHA256Checksum;
     private String stableId;
     private int fileId;
     private String datasetId;
@@ -80,6 +81,10 @@ public class IngestionTest {
              Crypt4GHOutputStream crypt4GHOutputStream = new Crypt4GHOutputStream(fileOutputStream, senderKeyPair.getPrivate(), localEGAInstancePublicKey)) {
             FileUtils.copyFile(rawFile, crypt4GHOutputStream);
         }
+
+        bytes = DigestUtils.sha256(Files.newInputStream(encFile.toPath()));
+        encSHA256Checksum = Hex.encodeHexString(bytes);
+        log.info("Enc SHA256 checksum: " + encSHA256Checksum);
 
         Unirest.primaryInstance().config().verifySsl(false).hostnameVerifier(NoopHostnameVerifier.INSTANCE);
     }
@@ -199,7 +204,7 @@ public class IngestionTest {
                 .correlationId(UUID.randomUUID().toString())
                 .build();
 
-        String message = String.format("{\"file_id\":\"%s\",\"stable_id\":\"%s\"}", fileId, stableId);
+        String message = String.format("{\"filepath\":\"%s\",\"user\":\"%s\",\"file_checksum\":\"%s\",\"stable_id\":\"%s\"}", encFile.getName(), "dummy", encSHA256Checksum, stableId);
         log.info(message);
         channel.basicPublish("localega.v1",
                 "stableIDs",
