@@ -96,8 +96,8 @@ services:
         delay: 5s
         window: 120s
     environment:
-      - USER_NAME=${PRIVATE_BROKER_USER}
-      - PASSWORD_HASH=${PRIVATE_BROKER_HASH}
+      - USER_NAME=${PUBLIC_BROKER_USER}
+      - PASSWORD_HASH=${PUBLIC_BROKER_HASH}
       - PRIVATE_CONNECTION
       - CEGA_CONNECTION
     secrets:
