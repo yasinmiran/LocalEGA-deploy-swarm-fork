@@ -131,27 +131,6 @@ services:
       - source: rootCA.pem
         target: /etc/rabbitmq/CA.cert
 
-  vault:
-    image: minio/minio:latest
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        window: 120s
-    environment:
-      - MINIO_ACCESS_KEY
-      - MINIO_SECRET_KEY
-    secrets:
-      - source: server.pem
-        target: /root/.minio/certs/public.crt
-      - source: server-key.pem
-        target: /root/.minio/certs/private.key
-      - source: rootCA.pem
-        target: /root/.minio/CAs/LocalEGA.crt
-    volumes:
-      - vault:/data
-    command: server /data
-
   ingest:
     image: neicnordic/sda-base:latest
     deploy:
@@ -175,6 +154,7 @@ services:
         target: /etc/ega/logstash-logger.yaml
     volumes:
       - tsd:/ega/inbox
+      - vault:/ega/archive
     user: lega
     entrypoint: ["ega-ingest"]
 
@@ -207,6 +187,8 @@ services:
         target: /etc/ega/CA.cert
       - source: logstash-logger.yaml
         target: /etc/ega/logstash-logger.yaml
+    volumes:
+      - vault:/ega/archive
     user: lega
     entrypoint: ["ega-verify"]
 
@@ -231,6 +213,8 @@ services:
         target: /etc/ega/CA.cert
       - source: logstash-logger.yaml
         target: /etc/ega/logstash-logger.yaml
+    volumes:
+      - vault:/ega/archive
     user: lega
     entrypoint: ["ega-finalize"]
 
@@ -244,13 +228,11 @@ services:
         delay: 5s
         window: 120s
     environment:
-      - S3_PORT
+      - ARCHIVE_PATH
       - KEYSTORE_PASSWORD=${SERVER_CERT_PASSWORD}
       - DB_INSTANCE=${DB_HOST}
       - POSTGRES_DB=${DB_DATABASE_NAME}
       - POSTGRES_PASSWORD=${DB_LEGA_OUT_PASSWORD}
-      - S3_ACCESS_KEY=${MINIO_ACCESS_KEY}
-      - S3_SECRET_KEY=${MINIO_SECRET_KEY}
       - LOGSTASH_HOST
       - LOGSTASH_PORT
     secrets:
@@ -272,6 +254,8 @@ services:
         target: /etc/ega/crypt4gh/key.pem
       - source: ega.sec.pass
         target: /etc/ega/crypt4gh/key.pass
+    volumes:
+      - vault:/ega/archive
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.5.1

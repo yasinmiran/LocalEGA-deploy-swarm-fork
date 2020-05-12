@@ -32,10 +32,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Base64;
 import java.util.Properties;
 import java.util.UUID;
@@ -58,6 +55,7 @@ public class IngestionTest {
     private String stableId;
     private int fileId;
     private String datasetId;
+    private String archivePath;
 
     @Before
     public void setup() throws IOException, GeneralSecurityException {
@@ -260,13 +258,15 @@ public class IngestionTest {
         props.setProperty("sslcert", new File("localhost+9-client.pem").getAbsolutePath());
         props.setProperty("sslkey", new File("localhost+9-client-key.der").getAbsolutePath());
         java.sql.Connection conn = DriverManager.getConnection(url, props);
-        String sql = "select status from local_ega.files where status = 'READY' AND inbox_path = ?";
+        String sql = "select * from local_ega.files where status = 'READY' AND inbox_path = ?";
         PreparedStatement statement = conn.prepareStatement(sql);
         statement.setString(1, encFile.getName());
         ResultSet resultSet = statement.executeQuery();
         if (resultSet.wasNull() || !resultSet.next()) {
             Assert.fail("Verification failed");
         }
+        archivePath = resultSet.getString(8);
+        log.info("Archive path: {}", archivePath);
         log.info("Verification completed successfully");
     }
 
@@ -287,7 +287,7 @@ public class IngestionTest {
                         stableId,
                         datasetId,
                         encFile.getName(),
-                        fileId,
+                        archivePath,
                         rawSHA256Checksum).strip(),
                 Unirest
                         .get(String.format("https://localhost:8080/metadata/datasets/%s/files", datasetId))
