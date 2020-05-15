@@ -165,9 +165,6 @@ services:
         condition: on-failure
         delay: 5s
         window: 120s
-    environment:
-      - S3_ACCESS_KEY=${MINIO_ACCESS_KEY}
-      - S3_SECRET_KEY=${MINIO_SECRET_KEY}
     secrets:
       - source: conf.ini
         target: /etc/ega/conf.ini
