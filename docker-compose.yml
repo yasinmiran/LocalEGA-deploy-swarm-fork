@@ -18,7 +18,7 @@ services:
       - source: server.p12
         target: /etc/ega/ssl/server.cert
     volumes:
-      - tsd:/tsd/p11/data/durable/file-import/
+      - tsd:/tsd/p11/data/durable/apps/ega/
 
   db:
     image: neicnordic/sda-db:latest

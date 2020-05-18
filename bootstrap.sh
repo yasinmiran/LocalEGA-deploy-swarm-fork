@@ -42,6 +42,7 @@ perl -i -pe 's!DB_DATABASE_NAME!$ENV{"DB_DATABASE_NAME"}!g' conf.ini
 perl -i -pe 's!DB_LEGA_IN_USER!$ENV{"DB_LEGA_IN_USER"}!g' conf.ini
 perl -i -pe 's!DB_LEGA_IN_PASSWORD!$ENV{"DB_LEGA_IN_PASSWORD"}!g' conf.ini
 perl -i -pe 's!MQ_CONNECTION!$ENV{"MQ_CONNECTION"}!g' conf.ini
+perl -i -pe 's!TSD_PROJECT!$ENV{"TSD_PROJECT"}!g' conf.ini
 docker secret create conf.ini conf.ini
 
 cp default.elasticsearch.yml elasticsearch.yml
