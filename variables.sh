@@ -1,4 +1,5 @@
 export ROOT_CERT_PASSWORD="r00t_cert_passw0rd"
+export TSD_ROOT_CERT_PASSWORD="r00t_cert_passw0rd"
 export SERVER_CERT_PASSWORD="server_cert_passw0rd"
 export CLIENT_CERT_PASSWORD="client_cert_passw0rd"
 export TSD_HOST="tsd:8080"

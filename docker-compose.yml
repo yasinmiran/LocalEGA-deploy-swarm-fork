@@ -67,8 +67,8 @@ services:
         delay: 5s
         window: 120s
     environment:
-      - RABBITMQ_CUSTOM_ROOT=true
       - ROOT_CERT_PASSWORD
+      - TSD_ROOT_CERT_PASSWORD
       - SERVER_CERT_PASSWORD
       - CLIENT_CERT_PASSWORD
       - CLIENT_ID=test
