@@ -97,6 +97,9 @@ services:
         delay: 5s
         window: 120s
     environment:
+      - SSL_VERIFY=verify_peer
+      - SSL_FAIL_IF_NO_PEER_CERT=true
+      - SSL_DEPTH=2
       - USER_NAME=${PUBLIC_BROKER_USER}
       - PASSWORD_HASH=${PUBLIC_BROKER_HASH}
       - PRIVATE_CONNECTION
