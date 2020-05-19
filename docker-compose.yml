@@ -36,7 +36,6 @@ services:
       - PG_SERVER_CERT=/etc/ega/pg.cert
       - PG_SERVER_KEY=/etc/ega/pg.key
       - PG_CA=/etc/ega/CA.cert
-      - PG_VERIFY_PEER=1
     secrets:
       - source: server.pem
         target: /etc/ega/pg.cert
@@ -125,6 +124,9 @@ services:
         delay: 5s
         window: 120s
     environment:
+      - SSL_VERIFY=verify_peer
+      - SSL_FAIL_IF_NO_PEER_CERT=false
+      - SSL_DEPTH=2
       - USER_NAME=${PRIVATE_BROKER_USER}
       - PASSWORD_HASH=${PRIVATE_BROKER_HASH}
     secrets:
@@ -145,15 +147,6 @@ services:
     secrets:
       - source: conf.ini
         target: /etc/ega/conf.ini
-      - source: client.pem
-        target: /etc/ega/ssl.cert
-      - source: client-key.pem
-        target: /etc/ega/ssl.key
-        uid: '1000'
-        gid: '1000'
-        mode: 0600
-      - source: rootCA.pem
-        target: /etc/ega/CA.cert
     volumes:
       - tsd:/ega/inbox
       - vault:/ega/archive
@@ -175,15 +168,6 @@ services:
         uid: '1000'
         gid: '1000'
         mode: 0600
-      - source: client.pem
-        target: /etc/ega/ssl.cert
-      - source: client-key.pem
-        target: /etc/ega/ssl.key
-        uid: '1000'
-        gid: '1000'
-        mode: 0600
-      - source: rootCA.pem
-        target: /etc/ega/CA.cert
     volumes:
       - vault:/ega/archive
     user: lega
@@ -199,15 +183,6 @@ services:
     secrets:
       - source: conf.ini
         target: /etc/ega/conf.ini
-      - source: client.pem
-        target: /etc/ega/ssl.cert
-      - source: client-key.pem
-        target: /etc/ega/ssl.key
-        uid: '1000'
-        gid: '1000'
-        mode: 0600
-      - source: rootCA.pem
-        target: /etc/ega/CA.cert
     volumes:
       - vault:/ega/archive
     user: lega
