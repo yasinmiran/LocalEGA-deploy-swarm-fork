@@ -206,8 +206,6 @@ services:
     secrets:
       - source: rootCA.pem
         target: /etc/ega/ssl/CA.cert
-      - source: rootCA.pem
-        target: /etc/ssl/certs/ca-certificates.crt
       - source: server.p12
         target: /etc/ega/ssl/server.cert
       - source: client.pem
