@@ -45,24 +45,4 @@ perl -i -pe 's!MQ_CONNECTION!$ENV{"MQ_CONNECTION"}!g' conf.ini
 perl -i -pe 's!TSD_PROJECT!$ENV{"TSD_PROJECT"}!g' conf.ini
 docker secret create conf.ini conf.ini
 
-cp default.elasticsearch.yml elasticsearch.yml
-docker secret create elasticsearch.yml elasticsearch.yml
-
-cp default.kibana.yml kibana.yml
-perl -i -pe 's!ELASTIC_PASSWORD!$ENV{"ELASTIC_PASSWORD"}!g' kibana.yml
-docker secret create kibana.yml kibana.yml
-
-cp default.logstash.yml logstash.yml
-perl -i -pe 's!ELASTIC_PASSWORD!$ENV{"ELASTIC_PASSWORD"}!g' logstash.yml
-docker secret create logstash.yml logstash.yml
-
-cp default.logstash.conf logstash.conf
-perl -i -pe 's!ELASTIC_PASSWORD!$ENV{"ELASTIC_PASSWORD"}!g' logstash.conf
-docker secret create logstash.conf logstash.conf
-
-cp default.logstash-logger.yaml logstash-logger.yaml
-perl -i -pe 's!LOGSTASH_HOST!$ENV{"LOGSTASH_HOST"}!g' logstash-logger.yaml
-perl -i -pe 's!LOGSTASH_PORT!$ENV{"LOGSTASH_PORT"}!g' logstash-logger.yaml
-docker secret create logstash-logger.yaml logstash-logger.yaml
-
 docker-compose config > docker-stack.yml

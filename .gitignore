@@ -201,9 +201,4 @@ buildNumber.properties
 *.p12
 conf.ini
 ega.sec.pass
-elasticsearch.yml
-kibana.yml
-logstash.conf
-logstash.yml
-logstash-logger.yaml
 docker-stack.yml
