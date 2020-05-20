@@ -198,20 +198,15 @@ services:
         delay: 5s
         window: 120s
     environment:
+      - SSL_MODE=required
       - ARCHIVE_PATH
       - KEYSTORE_PASSWORD=${SERVER_CERT_PASSWORD}
       - DB_INSTANCE=${DB_HOST}
       - POSTGRES_DB=${DB_DATABASE_NAME}
       - POSTGRES_PASSWORD=${DB_LEGA_OUT_PASSWORD}
     secrets:
-      - source: rootCA.pem
-        target: /etc/ega/ssl/CA.cert
       - source: server.p12
         target: /etc/ega/ssl/server.cert
-      - source: client.pem
-        target: /etc/ega/ssl/client.cert
-      - source: client-key.der
-        target: /etc/ega/ssl/client.key
       - source: jwt.pub.pem
         target: /etc/ega/jwt/passport.pem
       - source: jwt.pub.pem
