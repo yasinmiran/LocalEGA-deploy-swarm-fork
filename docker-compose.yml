@@ -198,7 +198,7 @@ services:
         delay: 5s
         window: 120s
     environment:
-      - SSL_MODE=required
+      - SSL_MODE=require
       - ARCHIVE_PATH
       - KEYSTORE_PASSWORD=${SERVER_CERT_PASSWORD}
       - DB_INSTANCE=${DB_HOST}

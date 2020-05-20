@@ -173,7 +173,7 @@ public class IngestionTest {
         props.setProperty("password", System.getenv("DB_LEGA_IN_PASSWORD"));
         props.setProperty("ssl", "true");
         props.setProperty("application_name", "LocalEGA");
-        props.setProperty("sslmode", "verify-full");
+        props.setProperty("sslmode", "require");
         props.setProperty("sslrootcert", new File("rootCA.pem").getAbsolutePath());
         props.setProperty("sslcert", new File("localhost+9-client.pem").getAbsolutePath());
         props.setProperty("sslkey", new File("localhost+9-client-key.der").getAbsolutePath());
