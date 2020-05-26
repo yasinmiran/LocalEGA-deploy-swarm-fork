@@ -148,9 +148,7 @@ public class IngestionTest {
                 .correlationId(UUID.randomUUID().toString())
                 .build();
 
-
-        stableId = "EGAF" + UUID.randomUUID().toString().replace("-", "");
-        String message = String.format("{\"user\":\"%s\",\"filepath\":\"%s\",\"stable_id\":\"%s\"}", "dummy@elixir-europe.org", encFile.getName(), stableId);
+        String message = String.format("{\"user\":\"%s\",\"filepath\":\"%s\"}", "dummy@elixir-europe.org", encFile.getName());
         log.info(message);
         channel.basicPublish("localega.v1",
                 "files",
@@ -163,6 +161,8 @@ public class IngestionTest {
 
     @SuppressWarnings({"SqlResolve", "SqlNoDataSourceInspection"})
     private void finalise() throws IOException, TimeoutException, NoSuchAlgorithmException, KeyManagementException, URISyntaxException, SQLException {
+        stableId = "EGAF" + UUID.randomUUID().toString().replace("-", "");
+
         log.info("Publishing finalization message to CentralEGA...");
         String dbHost = "localhost";
         String port = "5432";

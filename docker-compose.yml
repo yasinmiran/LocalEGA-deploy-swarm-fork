@@ -207,6 +207,8 @@ services:
     secrets:
       - source: server.p12
         target: /etc/ega/ssl/server.cert
+      - source: client.pem
+        target: /etc/ega/ssl/client.cert
       - source: jwt.pub.pem
         target: /etc/ega/jwt/passport.pem
       - source: jwt.pub.pem
