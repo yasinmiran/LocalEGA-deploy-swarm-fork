@@ -35,8 +35,6 @@ docker secret create ega.pub.pem ega.pub.pem
 
 cp default.conf.ini conf.ini
 perl -i -pe 's!KEY_PASSWORD!$ENV{"KEY_PASSWORD"}!g' conf.ini
-perl -i -pe 's!MINIO_ACCESS_KEY!$ENV{"MINIO_ACCESS_KEY"}!g' conf.ini
-perl -i -pe 's!MINIO_SECRET_KEY!$ENV{"MINIO_SECRET_KEY"}!g' conf.ini
 perl -i -pe 's!DB_HOST!$ENV{"DB_HOST"}!g' conf.ini
 perl -i -pe 's!DB_DATABASE_NAME!$ENV{"DB_DATABASE_NAME"}!g' conf.ini
 perl -i -pe 's!DB_LEGA_IN_USER!$ENV{"DB_LEGA_IN_USER"}!g' conf.ini
