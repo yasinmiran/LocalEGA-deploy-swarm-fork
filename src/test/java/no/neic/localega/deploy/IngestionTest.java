@@ -32,7 +32,10 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.sql.*;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Base64;
 import java.util.Properties;
 import java.util.UUID;
@@ -94,8 +97,8 @@ public class IngestionTest {
             ingest();
             Thread.sleep(10000); // wait for ingestion and verification to be finished
             finalise();
-            grantPermissions();
             verify();
+            map();
             download();
         } catch (Throwable t) {
             log.error(t.getMessage(), t);
@@ -161,8 +164,6 @@ public class IngestionTest {
 
     @SuppressWarnings({"SqlResolve", "SqlNoDataSourceInspection"})
     private void finalise() throws IOException, TimeoutException, NoSuchAlgorithmException, KeyManagementException, URISyntaxException, SQLException {
-        stableId = "EGAF" + UUID.randomUUID().toString().replace("-", "");
-
         log.info("Publishing finalization message to CentralEGA...");
         String dbHost = "localhost";
         String port = "5432";
@@ -202,6 +203,8 @@ public class IngestionTest {
                 .correlationId(UUID.randomUUID().toString())
                 .build();
 
+        stableId = "EGAF" + UUID.randomUUID().toString().replace("-", "");
+
         String message = String.format("{\"filepath\":\"%s\",\"user\":\"%s\",\"file_checksum\":\"%s\",\"stable_id\":\"%s\"}", encFile.getName(), "dummy@elixir-europe.org", encSHA256Checksum, stableId);
         log.info(message);
         channel.basicPublish("localega.v1",
@@ -213,30 +216,34 @@ public class IngestionTest {
         connectionFactory.close();
     }
 
-    @SuppressWarnings({"SqlResolve", "SqlNoDataSourceInspection"})
-    private void grantPermissions() throws SQLException {
-        log.info("Granting permissions...");
+    private void map() throws NoSuchAlgorithmException, KeyManagementException, URISyntaxException, IOException, TimeoutException {
+        log.info("Mapping file to a dataset...");
+
         datasetId = "EGAD" + UUID.randomUUID().toString().replace("-", "");
 
-        String dbHost = "localhost";
-        String port = "5432";
-        String db = "lega";
-        String url = String.format("jdbc:postgresql://%s:%s/%s", dbHost, port, db);
-        Properties props = new Properties();
-        props.setProperty("user", "lega_out");
-        props.setProperty("password", System.getenv("DB_LEGA_OUT_PASSWORD"));
-        props.setProperty("ssl", "true");
-        props.setProperty("application_name", "LocalEGA");
-        props.setProperty("sslmode", "verify-full");
-        props.setProperty("sslrootcert", new File("rootCA.pem").getAbsolutePath());
-        props.setProperty("sslcert", new File("localhost+9-client.pem").getAbsolutePath());
-        props.setProperty("sslkey", new File("localhost+9-client-key.der").getAbsolutePath());
-        java.sql.Connection conn = DriverManager.getConnection(url, props);
-        String sql = "insert into local_ega_ebi.filedataset (file_id, dataset_stable_id) values (?, ?)";
-        PreparedStatement statement = conn.prepareStatement(sql);
-        statement.setInt(1, fileId);
-        statement.setString(2, datasetId);
-        statement.executeUpdate();
+        String mqConnectionString = String.format("amqps://%s:%s@localhost:5671/%%2F", System.getenv("PUBLIC_BROKER_USER"), System.getenv("PUBLIC_BROKER_PASSWORD"));
+        ConnectionFactory factory = new ConnectionFactory();
+        factory.setUri(mqConnectionString);
+
+        Connection connectionFactory = factory.newConnection();
+        Channel channel = connectionFactory.createChannel();
+        AMQP.BasicProperties properties = new AMQP.BasicProperties()
+                .builder()
+                .deliveryMode(2)
+                .contentType("application/json")
+                .contentEncoding(StandardCharsets.UTF_8.displayName())
+                .correlationId(UUID.randomUUID().toString())
+                .build();
+
+        String message = String.format("[{\"stableId\":\"%s\",\"datasetId\":\"%s\"}]", stableId, datasetId);
+        log.info(message);
+        channel.basicPublish("",
+                "mappings",
+                properties,
+                message.getBytes());
+
+        channel.close();
+        connectionFactory.close();
 
         log.info("Permissions granted successfully");
     }

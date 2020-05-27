@@ -90,6 +90,9 @@ services:
 
   public-mq:
     image: uiobmi/localega-broker-public:latest
+    ports:
+      - 5671:5671
+      - 15671:15671
     deploy:
       restart_policy:
         condition: on-failure
@@ -97,7 +100,7 @@ services:
         window: 120s
     environment:
       - SSL_VERIFY=verify_peer
-      - SSL_FAIL_IF_NO_PEER_CERT=true
+      - SSL_FAIL_IF_NO_PEER_CERT=false
       - SSL_DEPTH=2
       - USER_NAME=${PUBLIC_BROKER_USER}
       - PASSWORD_HASH=${PUBLIC_BROKER_HASH}
@@ -187,6 +190,18 @@ services:
       - vault:/ega/archive
     user: lega
     entrypoint: ["ega-finalize"]
+
+  mapper:
+    image: neicnordic/sda-mapper:latest
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - DB_IN_CONNECTION
+      - DB_OUT_CONNECTION
+      - MQ_CONNECTION
 
   doa:
     image: neicnordic/sda-doa:latest
