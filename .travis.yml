@@ -14,7 +14,7 @@ install:
   - source deploy.sh
 
 script:
-  - sleep 240
+  - sleep 300
   - mvn test
 
 after_failure:
@@ -22,6 +22,7 @@ after_failure:
   - docker service logs LEGA_doa
   - docker service logs LEGA_finalize
   - docker service logs LEGA_ingest
+  - docker service logs LEGA_mapper
   - docker service logs LEGA_private-mq
   - docker service logs LEGA_proxy
   - docker service logs LEGA_public-mq
