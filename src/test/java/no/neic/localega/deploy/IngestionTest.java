@@ -221,7 +221,7 @@ public class IngestionTest {
 
         datasetId = "EGAD" + UUID.randomUUID().toString().replace("-", "");
 
-        String mqConnectionString = String.format("amqps://%s:%s@localhost:5671/%%2F", System.getenv("PUBLIC_BROKER_USER"), System.getenv("PUBLIC_BROKER_PASSWORD"));
+        String mqConnectionString = String.format("amqps://%s:%s@localhost:5671/%%2F", System.getenv("PRIVATE_BROKER_USER"), System.getenv("PRIVATE_BROKER_PASSWORD"));
         ConnectionFactory factory = new ConnectionFactory();
         factory.setUri(mqConnectionString);
 

@@ -69,7 +69,6 @@ services:
       - ROOT_CERT_PASSWORD
       - TSD_ROOT_CERT_PASSWORD
       - SERVER_CERT_PASSWORD
-      - CLIENT_CERT_PASSWORD
       - CLIENT_ID=test
       - CLIENT_SECRET=test
       - CEGA_USERNAME
@@ -81,46 +80,28 @@ services:
         target: /etc/ega/ssl/CA.cert
       - source: server.p12
         target: /etc/ega/ssl/server.cert
-      - source: client.p12
-        target: /etc/ega/ssl/client.cert
       - source: jwt.pub.pem
         target: /etc/ega/jwt/passport.pem
       - source: jwt.pub.pem
         target: /etc/ega/jwt/visa.pem
 
-  public-mq:
-    image: uiobmi/localega-broker-public:latest
-    ports:
-      - 5671:5671
-      - 15671:15671
+  interceptor:
+    image: uiobmi/mq-interceptor:latest
     deploy:
       restart_policy:
         condition: on-failure
         delay: 5s
         window: 120s
     environment:
-      - SSL_VERIFY=verify_peer
-      - SSL_FAIL_IF_NO_PEER_CERT=false
-      - SSL_DEPTH=2
-      - USER_NAME=${PUBLIC_BROKER_USER}
-      - PASSWORD_HASH=${PUBLIC_BROKER_HASH}
-      - PRIVATE_CONNECTION
-      - CEGA_CONNECTION
-    secrets:
-      - source: server.pem
-        target: /etc/rabbitmq/ssl.cert
-      - source: server-key.pem
-        target: /etc/rabbitmq/ssl.key
-      - source: rootCA.pem
-        target: /etc/rabbitmq/CA.cert
-      - source: client.pem
-        target: /etc/ega/ssl.cert
-      - source: client-key.pem
-        target: /etc/ega/ssl.key
+      - CEGA_MQ_CONNECTION=${CEGA_CONNECTION}
+      - LEGA_MQ_CONNECTION=${PRIVATE_CONNECTION}
 
   # Private stack
   private-mq:
     image: uiobmi/localega-broker-private:latest
+    ports:
+      - 5671:5671
+      - 15671:15671
     deploy:
       restart_policy:
         condition: on-failure
