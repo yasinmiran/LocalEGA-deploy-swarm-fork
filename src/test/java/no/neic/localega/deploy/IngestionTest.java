@@ -151,7 +151,7 @@ public class IngestionTest {
                 .correlationId(UUID.randomUUID().toString())
                 .build();
 
-        String message = String.format("{\"user\":\"%s\",\"filepath\":\"%s\"}", "dummy@elixir-europe.org", encFile.getName());
+        String message = String.format("{\"user\":\"%s\",\"filepath\":\"%s\"}", "dummy", encFile.getName());
         log.info(message);
         channel.basicPublish("localega.v1",
                 "files",
@@ -205,7 +205,7 @@ public class IngestionTest {
 
         stableId = "EGAF" + UUID.randomUUID().toString().replace("-", "");
 
-        String message = String.format("{\"filepath\":\"%s\",\"user\":\"%s\",\"file_checksum\":\"%s\",\"stable_id\":\"%s\"}", encFile.getName(), "dummy@elixir-europe.org", encSHA256Checksum, stableId);
+        String message = String.format("{\"filepath\":\"%s\",\"user\":\"%s\",\"file_checksum\":\"%s\",\"stable_id\":\"%s\"}", encFile.getName(), "dummy", encSHA256Checksum, stableId);
         log.info(message);
         channel.basicPublish("localega.v1",
                 "stableIDs",

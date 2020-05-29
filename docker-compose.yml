@@ -71,10 +71,18 @@ services:
       - SERVER_CERT_PASSWORD
       - CLIENT_ID=test
       - CLIENT_SECRET=test
+      - BROKER_HOST
+      - BROKER_PORT
+      - BROKER_USERNAME
+      - BROKER_PASSWORD
+      - BROKER_VHOST
+      - BROKER_VALIDATE
+      - EXCHANGE
       - CEGA_USERNAME
       - CEGA_PASSWORD
       - TSD_HOST
       - TSD_ACCESS_KEY
+      - POSTGRES_PASSWORD
     secrets:
       - source: rootCA.p12
         target: /etc/ega/ssl/CA.cert
@@ -93,8 +101,24 @@ services:
         delay: 5s
         window: 120s
     environment:
+      - POSTGRES_CONNECTION
       - CEGA_MQ_CONNECTION=${CEGA_CONNECTION}
       - LEGA_MQ_CONNECTION=${PRIVATE_CONNECTION}
+
+  postgres:
+    image: postgres
+    ports:
+      - 5433:5432
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - POSTGRES_PASSWORD
+    secrets:
+      - source: init-mappings-db.sh
+        target: /docker-entrypoint-initdb.d/init-mappings-db.sh
 
   # Private stack
   private-mq:
@@ -249,4 +273,6 @@ secrets:
   ega.pub.pem:
     external: true
   jwt.pub.pem:
+    external: true
+  init-mappings-db.sh:
     external: true

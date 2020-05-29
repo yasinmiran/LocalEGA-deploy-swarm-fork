@@ -43,4 +43,6 @@ perl -i -pe 's!MQ_CONNECTION!$ENV{"MQ_CONNECTION"}!g' conf.ini
 perl -i -pe 's!TSD_PROJECT!$ENV{"TSD_PROJECT"}!g' conf.ini
 docker secret create conf.ini conf.ini
 
+docker secret create init-mappings-db.sh init-mappings-db.sh
+
 docker-compose config > docker-stack.yml
