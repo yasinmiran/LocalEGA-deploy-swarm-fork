@@ -122,10 +122,10 @@ public class IngestionTest {
                 .getBody();
         String uploadId = jsonResponse.getObject().getString("id");
         log.info("Upload ID: {}", uploadId);
-        String finalizeURL = String.format("https://localhost/stream/%s?uploadId=%s&chunk=end&md5=%s&fileSize=%s",
+        String finalizeURL = String.format("https://localhost/stream/%s?uploadId=%s&chunk=end&sha256=%s&fileSize=%s",
                 encFile.getName(),
                 uploadId,
-                md5Hex,
+                encSHA256Checksum,
                 FileUtils.sizeOf(encFile));
         jsonResponse = Unirest
                 .patch(finalizeURL)
