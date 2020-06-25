@@ -235,7 +235,7 @@ public class IngestionTest {
                 .correlationId(UUID.randomUUID().toString())
                 .build();
 
-        String message = String.format("[{\"accession_ids\":[\"%s\"],\"dataset_id\":\"%s\"}]", stableId, datasetId);
+        String message = String.format("{\"accession_ids\":[\"%s\"],\"dataset_id\":\"%s\"}", stableId, datasetId);
         log.info(message);
         channel.basicPublish("",
                 "mappings",
