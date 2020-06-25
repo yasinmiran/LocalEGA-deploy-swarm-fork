@@ -56,7 +56,6 @@ public class IngestionTest {
     private String rawSHA256Checksum;
     private String encSHA256Checksum;
     private String stableId;
-    private int fileId;
     private String datasetId;
     private String archivePath;
 
@@ -96,7 +95,6 @@ public class IngestionTest {
             upload();
             ingest();
             Thread.sleep(10000); // wait for ingestion and verification to be finished
-            finalise();
             verify();
             map();
             download();
@@ -163,8 +161,8 @@ public class IngestionTest {
     }
 
     @SuppressWarnings({"SqlResolve", "SqlNoDataSourceInspection"})
-    private void finalise() throws IOException, TimeoutException, NoSuchAlgorithmException, KeyManagementException, URISyntaxException, SQLException {
-        log.info("Publishing finalization message to CentralEGA...");
+    private void verify() throws SQLException {
+        log.info("Starting verification...");
         String dbHost = "localhost";
         String port = "5432";
         String db = "lega";
@@ -174,46 +172,22 @@ public class IngestionTest {
         props.setProperty("password", System.getenv("DB_LEGA_IN_PASSWORD"));
         props.setProperty("ssl", "true");
         props.setProperty("application_name", "LocalEGA");
-        props.setProperty("sslmode", "require");
+        props.setProperty("sslmode", "verify-full");
         props.setProperty("sslrootcert", new File("rootCA.pem").getAbsolutePath());
         props.setProperty("sslcert", new File("localhost+9-client.pem").getAbsolutePath());
         props.setProperty("sslkey", new File("localhost+9-client-key.der").getAbsolutePath());
         java.sql.Connection conn = DriverManager.getConnection(url, props);
-        String sql = "select id from local_ega.files where inbox_path = ?";
+        String sql = "select * from local_ega.files where status = 'READY' AND inbox_path = ?";
         PreparedStatement statement = conn.prepareStatement(sql);
         statement.setString(1, encFile.getName());
         ResultSet resultSet = statement.executeQuery();
         if (resultSet.wasNull() || !resultSet.next()) {
-            Assert.fail("Finalization failed");
+            Assert.fail("Verification failed");
         }
-        fileId = resultSet.getInt(1);
-
-        log.info("File ID: {}", fileId);
-
-        String mqConnectionString = System.getenv("CEGA_CONNECTION");
-        ConnectionFactory factory = new ConnectionFactory();
-        factory.setUri(mqConnectionString);
-        Connection connectionFactory = factory.newConnection();
-        Channel channel = connectionFactory.createChannel();
-        AMQP.BasicProperties properties = new AMQP.BasicProperties()
-                .builder()
-                .deliveryMode(2)
-                .contentType("application/json")
-                .contentEncoding(StandardCharsets.UTF_8.displayName())
-                .correlationId(UUID.randomUUID().toString())
-                .build();
-
-        stableId = "EGAF" + UUID.randomUUID().toString().replace("-", "");
-
-        String message = String.format("{\"filepath\":\"%s\",\"user\":\"%s\",\"file_checksum\":\"%s\",\"stable_id\":\"%s\"}", encFile.getName(), "dummy", encSHA256Checksum, stableId);
-        log.info(message);
-        channel.basicPublish("localega.v1",
-                "stableIDs",
-                properties,
-                message.getBytes());
-
-        channel.close();
-        connectionFactory.close();
+        archivePath = resultSet.getString(8);
+        stableId = resultSet.getString(13);
+        log.info("Archive path: {}", archivePath);
+        log.info("Verification completed successfully");
     }
 
     private void map() throws NoSuchAlgorithmException, KeyManagementException, URISyntaxException, IOException, TimeoutException {
@@ -246,35 +220,6 @@ public class IngestionTest {
         connectionFactory.close();
 
         log.info("Permissions granted successfully");
-    }
-
-    @SuppressWarnings({"SqlResolve", "SqlNoDataSourceInspection"})
-    private void verify() throws SQLException {
-        log.info("Starting verification...");
-        String dbHost = "localhost";
-        String port = "5432";
-        String db = "lega";
-        String url = String.format("jdbc:postgresql://%s:%s/%s", dbHost, port, db);
-        Properties props = new Properties();
-        props.setProperty("user", "lega_in");
-        props.setProperty("password", System.getenv("DB_LEGA_IN_PASSWORD"));
-        props.setProperty("ssl", "true");
-        props.setProperty("application_name", "LocalEGA");
-        props.setProperty("sslmode", "verify-full");
-        props.setProperty("sslrootcert", new File("rootCA.pem").getAbsolutePath());
-        props.setProperty("sslcert", new File("localhost+9-client.pem").getAbsolutePath());
-        props.setProperty("sslkey", new File("localhost+9-client-key.der").getAbsolutePath());
-        java.sql.Connection conn = DriverManager.getConnection(url, props);
-        String sql = "select * from local_ega.files where status = 'READY' AND inbox_path = ?";
-        PreparedStatement statement = conn.prepareStatement(sql);
-        statement.setString(1, encFile.getName());
-        ResultSet resultSet = statement.executeQuery();
-        if (resultSet.wasNull() || !resultSet.next()) {
-            Assert.fail("Verification failed");
-        }
-        archivePath = resultSet.getString(8);
-        log.info("Archive path: {}", archivePath);
-        log.info("Verification completed successfully");
     }
 
     private void download() throws GeneralSecurityException, IOException {
