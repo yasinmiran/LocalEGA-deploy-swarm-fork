@@ -93,6 +93,7 @@ public class IngestionTest {
     public void test() {
         try {
             upload();
+            Thread.sleep(10000); // wait for triggers to be set up at CEGA
             ingest();
             Thread.sleep(10000); // wait for ingestion and verification to be finished
             verify();
