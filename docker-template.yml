@@ -11,7 +11,7 @@ services:
         delay: 5s
         window: 120s
     environment:
-      - CERT_PASSWORD=${SERVER_CERT_PASSWORD}
+      - CERT_PASSWORD={{SERVER_CERT_PASSWORD}}
     secrets:
       - source: rootCA.pem
         target: /etc/ega/ssl/CA.cert
@@ -30,8 +30,8 @@ services:
         delay: 5s
         window: 120s
     environment:
-      - DB_LEGA_IN_PASSWORD
-      - DB_LEGA_OUT_PASSWORD
+      - DB_LEGA_IN_PASSWORD={{DB_LEGA_IN_PASSWORD}}
+      - DB_LEGA_OUT_PASSWORD={{DB_LEGA_OUT_PASSWORD}}
       - PGDATA=/ega/data
       - PG_SERVER_CERT=/etc/ega/pg.cert
       - PG_SERVER_KEY=/etc/ega/pg.key
@@ -66,23 +66,23 @@ services:
         delay: 5s
         window: 120s
     environment:
-      - ROOT_CERT_PASSWORD
-      - TSD_ROOT_CERT_PASSWORD
-      - SERVER_CERT_PASSWORD
+      - ROOT_CERT_PASSWORD={{ROOT_CERT_PASSWORD}}
+      - TSD_ROOT_CERT_PASSWORD={{TSD_ROOT_CERT_PASSWORD}}
+      - SERVER_CERT_PASSWORD={{SERVER_CERT_PASSWORD}}
       - CLIENT_ID=test
       - CLIENT_SECRET=test
-      - BROKER_HOST
-      - BROKER_PORT
-      - BROKER_USERNAME
-      - BROKER_PASSWORD
-      - BROKER_VHOST
-      - BROKER_VALIDATE
-      - EXCHANGE
-      - CEGA_USERNAME
-      - CEGA_PASSWORD
-      - TSD_HOST
-      - TSD_ACCESS_KEY
-      - POSTGRES_PASSWORD
+      - BROKER_HOST={{BROKER_HOST}}
+      - BROKER_PORT={{BROKER_PORT}}
+      - BROKER_USERNAME={{BROKER_USERNAME}}
+      - BROKER_PASSWORD={{BROKER_PASSWORD}}
+      - BROKER_VHOST={{BROKER_VHOST}}
+      - BROKER_VALIDATE={{BROKER_VALIDATE}}
+      - EXCHANGE={{EXCHANGE}}
+      - CEGA_USERNAME={{CEGA_USERNAME}}
+      - CEGA_PASSWORD={{CEGA_PASSWORD}}
+      - TSD_HOST={{TSD_HOST}}
+      - TSD_ACCESS_KEY={{TSD_ACCESS_KEY}}
+      - POSTGRES_PASSWORD={{POSTGRES_PASSWORD}}
     secrets:
       - source: rootCA.p12
         target: /etc/ega/ssl/CA.cert
@@ -101,9 +101,9 @@ services:
         delay: 5s
         window: 120s
     environment:
-      - POSTGRES_CONNECTION
-      - CEGA_MQ_CONNECTION=${CEGA_CONNECTION}
-      - LEGA_MQ_CONNECTION=${PRIVATE_CONNECTION}
+      - POSTGRES_CONNECTION={{POSTGRES_CONNECTION}}
+      - CEGA_MQ_CONNECTION={{CEGA_MQ_CONNECTION}}
+      - LEGA_MQ_CONNECTION={{PRIVATE_CONNECTION}}
 
   postgres:
     image: postgres
@@ -135,8 +135,8 @@ services:
       - SSL_VERIFY=verify_peer
       - SSL_FAIL_IF_NO_PEER_CERT=false
       - SSL_DEPTH=2
-      - USER_NAME=${PRIVATE_BROKER_USER}
-      - PASSWORD_HASH=${PRIVATE_BROKER_HASH}
+      - USER_NAME={{PRIVATE_BROKER_USER}}
+      - PASSWORD_HASH={{PRIVATE_BROKER_HASH}}
     secrets:
       - source: server.pem
         target: /etc/rabbitmq/ssl.cert
@@ -204,9 +204,9 @@ services:
         delay: 5s
         window: 120s
     environment:
-      - DB_IN_CONNECTION
-      - DB_OUT_CONNECTION
-      - MQ_CONNECTION
+      - DB_IN_CONNECTION={{DB_IN_CONNECTION}}
+      - DB_OUT_CONNECTION={{DB_OUT_CONNECTION}}
+      - MQ_CONNECTION={{MQ_CONNECTION}}
 
   doa:
     image: neicnordic/sda-doa:latest
@@ -219,13 +219,13 @@ services:
         window: 120s
     environment:
       - SSL_MODE=require
-      - ARCHIVE_PATH
-      - KEYSTORE_PASSWORD=${SERVER_CERT_PASSWORD}
-      - DB_INSTANCE=${DB_HOST}
-      - POSTGRES_DB=${DB_DATABASE_NAME}
-      - POSTGRES_PASSWORD=${DB_LEGA_OUT_PASSWORD}
+      - ARCHIVE_PATH={{ARCHIVE_PATH}}
+      - KEYSTORE_PASSWORD={{SERVER_CERT_PASSWORD}}
+      - DB_INSTANCE={{DB_HOST}}
+      - POSTGRES_DB={{DB_DATABASE_NAME}}
+      - POSTGRES_PASSWORD={{DB_LEGA_OUT_PASSWORD}}
       - OUTBOX_ENABLED=false
-      - BROKER_HOST=${MQ_HOST}
+      - BROKER_HOST={{MQ_HOST}}
     secrets:
       - source: server.p12
         target: /etc/ega/ssl/server.cert

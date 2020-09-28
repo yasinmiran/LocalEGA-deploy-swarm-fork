@@ -1,0 +1,119 @@
+name: Integration tests
+
+on:
+  push:
+    branches: [ master ]
+
+  pull_request:
+    branches: [ master ]
+
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    env:
+      BINDIR: /home/runner/.local/bin/
+      CEGA_MQ_CONNECTION: ${{ secrets.CEGA_MQ_CONNECTION }}
+      CEGA_USERNAME: ${{ secrets.CEGA_USERNAME }}
+      CEGA_PASSWORD: ${{ secrets.CEGA_PASSWORD }}
+      BROKER_HOST: ${{ secrets.BROKER_HOST }}
+      BROKER_PORT: ${{ secrets.BROKER_PORT }}
+      BROKER_USERNAME: ${{ secrets.BROKER_USERNAME }}
+      BROKER_PASSWORD: ${{ secrets.BROKER_PASSWORD }}
+      BROKER_VHOST: ${{ secrets.BROKER_VHOST }}
+      BROKER_VALIDATE: ${{ secrets.BROKER_VALIDATE }}
+      EXCHANGE: ${{ secrets.EXCHANGE }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up JDK 13
+        uses: actions/setup-java@v1
+        with:
+          java-version: 13
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install tools
+        run: |
+          mkdir -p ${BINDIR}
+          echo "::add-path::${BINDIR}"
+          curl -L https://github.com/FiloSottile/mkcert/releases/download/v1.4.1/mkcert-v1.4.1-linux-amd64 -o ${BINDIR}/mkcert
+          chmod +x ${BINDIR}/mkcert
+          curl -fsSL https://raw.githubusercontent.com/elixir-oslo/crypt4gh/master/install.sh | sh
+          pip3 install --user j2cli
+
+      - name: Bootstrap
+        run: make bootstrap
+
+      - name: Deploy
+        run: make deploy
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Sleep
+        run: sleep 300
+
+      - name: List services
+        run: make ls
+
+      - name: Test
+        run: make test
+
+      - name: TSD DB
+        if: ${{ failure() }}
+        run: docker service logs LEGA_db
+
+      - name: TSD MQ
+        if: ${{ failure() }}
+        run: docker service logs LEGA_mq
+
+      - name: TSD File API
+        if: ${{ failure() }}
+        run: docker service logs LEGA_tsd
+
+      - name: Tryggve Postgres
+        if: ${{ failure() }}
+        run: docker service logs LEGA_postgres
+
+      - name: Tryggve Proxy
+        if: ${{ failure() }}
+        run: docker service logs LEGA_proxy
+
+      - name: Tryggve Interceptor
+        if: ${{ failure() }}
+        run: docker service logs LEGA_interceptor
+
+      - name: LEGA ingest
+        if: ${{ failure() }}
+        run: docker service logs LEGA_ingest
+
+      - name: LEGA verify
+        if: ${{ failure() }}
+        run: docker service logs LEGA_verify
+
+      - name: LEGA finalize
+        if: ${{ failure() }}
+        run: docker service logs LEGA_finalize
+
+      - name: LEGA mapper
+        if: ${{ failure() }}
+        run: docker service logs LEGA_mapper
+
+      - name: LEGA DOA
+        if: ${{ failure() }}
+        run: docker service logs LEGA_doa

@@ -137,7 +137,7 @@ public class IngestionTest {
 
     private void ingest() throws IOException, TimeoutException, NoSuchAlgorithmException, KeyManagementException, URISyntaxException {
         log.info("Publishing ingestion message to CentralEGA...");
-        String mqConnectionString = System.getenv("CEGA_CONNECTION");
+        String mqConnectionString = System.getenv("CEGA_MQ_CONNECTION");
         ConnectionFactory factory = new ConnectionFactory();
         factory.setUri(mqConnectionString);
         Connection connectionFactory = factory.newConnection();
