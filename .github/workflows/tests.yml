@@ -102,15 +102,15 @@ jobs:
         if: ${{ failure() }}
         run: docker service logs LEGA_ingest
 
-      - name: LEGA verify
+      - name: LEGA Verify
         if: ${{ failure() }}
         run: docker service logs LEGA_verify
 
-      - name: LEGA finalize
+      - name: LEGA Finalize
         if: ${{ failure() }}
         run: docker service logs LEGA_finalize
 
-      - name: LEGA mapper
+      - name: LEGA Mapper
         if: ${{ failure() }}
         run: docker service logs LEGA_mapper
 
