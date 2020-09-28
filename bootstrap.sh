@@ -5,22 +5,22 @@ cp "$(mkcert -CAROOT)/rootCA.pem" rootCA.pem
 cp "$(mkcert -CAROOT)/rootCA-key.pem" rootCA-key.pem
 chmod 600 rootCA-key.pem
 openssl pkcs12 -export -out rootCA.p12 -in rootCA.pem -inkey rootCA-key.pem -passout pass:"${ROOT_CERT_PASSWORD}"
-mkcert localhost db vault public-mq private-mq tsd proxy kibana logstash elasticsearch
-openssl pkcs12 -export -out localhost+9.p12 -in localhost+9.pem -inkey localhost+9-key.pem -passout pass:"${SERVER_CERT_PASSWORD}"
-mkcert -client localhost db vault public-mq private-mq tsd proxy kibana logstash elasticsearch
-openssl pkcs12 -export -out localhost+9-client.p12 -in localhost+9-client.pem -inkey localhost+9-client-key.pem -passout pass:"${CLIENT_CERT_PASSWORD}"
-openssl pkcs8 -topk8 -inform PEM -in localhost+9-client-key.pem -outform DER -nocrypt -out localhost+9-client-key.der
+mkcert localhost db vault private-mq tsd proxy
+openssl pkcs12 -export -out localhost+5.p12 -in localhost+5.pem -inkey localhost+5-key.pem -passout pass:"${SERVER_CERT_PASSWORD}"
+mkcert -client localhost db vault private-mq tsd proxy
+openssl pkcs12 -export -out localhost+5-client.p12 -in localhost+5-client.pem -inkey localhost+5-client-key.pem -passout pass:"${CLIENT_CERT_PASSWORD}"
+openssl pkcs8 -topk8 -inform PEM -in localhost+5-client-key.pem -outform DER -nocrypt -out localhost+5-client-key.der
 
 docker swarm init
 docker secret create rootCA.pem rootCA.pem
 docker secret create rootCA.p12 rootCA.p12
-docker secret create server.pem localhost+9.pem
-docker secret create server-key.pem localhost+9-key.pem
-docker secret create server.p12 localhost+9.p12
-docker secret create client.pem localhost+9-client.pem
-docker secret create client-key.pem localhost+9-client-key.pem
-docker secret create client-key.der localhost+9-client-key.der
-docker secret create client.p12 localhost+9-client.p12
+docker secret create server.pem localhost+5.pem
+docker secret create server-key.pem localhost+5-key.pem
+docker secret create server.p12 localhost+5.p12
+docker secret create client.pem localhost+5-client.pem
+docker secret create client-key.pem localhost+5-client-key.pem
+docker secret create client-key.der localhost+5-client-key.der
+docker secret create client.p12 localhost+5-client.p12
 
 openssl genpkey -algorithm RSA -out jwt.priv.pem -pkeyopt rsa_keygen_bits:4096
 openssl rsa -pubout -in jwt.priv.pem -out jwt.pub.pem
