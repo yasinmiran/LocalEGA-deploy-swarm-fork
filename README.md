@@ -1,4 +1,5 @@
 # LocalEGA-deploy-swarm
+![Integration tests](https://github.com/neicnordic/LocalEGA-deploy-swarm/workflows/Integration%20tests/badge.svg)
 
 Docker Swarm deployment of LocalEGA
 
