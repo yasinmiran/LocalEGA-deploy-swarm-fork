@@ -5,9 +5,9 @@ cp "$(mkcert -CAROOT)/rootCA.pem" rootCA.pem
 cp "$(mkcert -CAROOT)/rootCA-key.pem" rootCA-key.pem
 chmod 600 rootCA-key.pem
 openssl pkcs12 -export -out rootCA.p12 -in rootCA.pem -inkey rootCA-key.pem -passout pass:"${ROOT_CERT_PASSWORD}"
-mkcert localhost db vault private-mq tsd proxy
+mkcert localhost db vault mq tsd proxy
 openssl pkcs12 -export -out localhost+5.p12 -in localhost+5.pem -inkey localhost+5-key.pem -passout pass:"${SERVER_CERT_PASSWORD}"
-mkcert -client localhost db vault private-mq tsd proxy
+mkcert -client localhost db vault mq tsd proxy
 openssl pkcs12 -export -out localhost+5-client.p12 -in localhost+5-client.pem -inkey localhost+5-client-key.pem -passout pass:"${CLIENT_CERT_PASSWORD}"
 openssl pkcs8 -topk8 -inform PEM -in localhost+5-client-key.pem -outform DER -nocrypt -out localhost+5-client-key.der
 

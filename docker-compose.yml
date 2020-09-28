@@ -121,7 +121,7 @@ services:
         target: /docker-entrypoint-initdb.d/init-mappings-db.sh
 
   # Private stack
-  private-mq:
+  mq:
     image: uiobmi/localega-broker-private:latest
     ports:
       - 5671:5671
@@ -224,6 +224,8 @@ services:
       - DB_INSTANCE=${DB_HOST}
       - POSTGRES_DB=${DB_DATABASE_NAME}
       - POSTGRES_PASSWORD=${DB_LEGA_OUT_PASSWORD}
+      - OUTBOX_ENABLED=false
+      - BROKER_HOST=${MQ_HOST}
     secrets:
       - source: server.p12
         target: /etc/ega/ssl/server.cert
