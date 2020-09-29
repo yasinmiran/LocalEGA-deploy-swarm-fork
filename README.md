@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS mapping
 
 #### Configuration
 
-Example Docker Swarm deployment descriptor for the public stack:
+Example Docker Swarm deployment descriptor for the public stack.
 
 ```
 version: '3.3'
@@ -120,7 +120,18 @@ The private stack deployment depends on such external services:
 
 #### Configuration
 
-Example Docker Swarm deployment descriptor for the private stack:
+**NB**: for some reason, Docker in TSD supports only long syntax for ports mapping, i.e.:
+
+```
+...
+    ports:
+      - target: 8080
+        published: 80
+        mode: host
+...
+```
+
+Example Docker Swarm deployment descriptor for the private stack. 
 
 ```
 version: '3.3'
