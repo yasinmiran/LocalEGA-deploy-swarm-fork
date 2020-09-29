@@ -1,7 +1,7 @@
 # LocalEGA-deploy-swarm
 ![Integration tests](https://github.com/neicnordic/LocalEGA-deploy-swarm/workflows/Integration%20tests/badge.svg)
 
-Docker Swarm deployment of LocalEGA
+Docker Swarm deployment of LocalEGA. Please, refer to the project documentation for getting more comprehensive information: https://neic-sda.readthedocs.io/
 
 ## Development
 
@@ -110,11 +110,13 @@ The private stack deployment depends on such external services:
 
 #### Database
 
-https://github.com/neicnordic/LocalEGA-db
+- Documentation: https://neic-sda.readthedocs.io/en/latest/db.html
+- Development/testing Docker image: https://github.com/neicnordic/LocalEGA-db
 
 #### Broker
 
-https://github.com/uio-bmi/localega-broker/tree/master/private
+- Documentation: https://neic-sda.readthedocs.io/en/latest/connection.html#local-message-broker
+- Development/testing Docker image: https://github.com/uio-bmi/localega-broker/tree/master/private
 
 #### Configuration
 
