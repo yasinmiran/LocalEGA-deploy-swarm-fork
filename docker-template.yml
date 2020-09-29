@@ -55,6 +55,30 @@ services:
     volumes:
       - db:/ega
 
+  mq:
+    image: uiobmi/localega-broker-private:latest
+    ports:
+      - 5671:5671
+      - 15671:15671
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - SSL_VERIFY=verify_peer
+      - SSL_FAIL_IF_NO_PEER_CERT=false
+      - SSL_DEPTH=2
+      - USER_NAME={{PRIVATE_BROKER_USER}}
+      - PASSWORD_HASH={{PRIVATE_BROKER_HASH}}
+    secrets:
+      - source: server.pem
+        target: /etc/rabbitmq/ssl.cert
+      - source: server-key.pem
+        target: /etc/rabbitmq/ssl.key
+      - source: rootCA.pem
+        target: /etc/rabbitmq/CA.cert
+
   # Public stack
   proxy:
     image: uiobmi/localega-tsd-proxy:latest
@@ -121,30 +145,6 @@ services:
         target: /docker-entrypoint-initdb.d/init-mappings-db.sh
 
   # Private stack
-  mq:
-    image: uiobmi/localega-broker-private:latest
-    ports:
-      - 5671:5671
-      - 15671:15671
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        window: 120s
-    environment:
-      - SSL_VERIFY=verify_peer
-      - SSL_FAIL_IF_NO_PEER_CERT=false
-      - SSL_DEPTH=2
-      - USER_NAME={{PRIVATE_BROKER_USER}}
-      - PASSWORD_HASH={{PRIVATE_BROKER_HASH}}
-    secrets:
-      - source: server.pem
-        target: /etc/rabbitmq/ssl.cert
-      - source: server-key.pem
-        target: /etc/rabbitmq/ssl.key
-      - source: rootCA.pem
-        target: /etc/rabbitmq/CA.cert
-
   ingest:
     image: neicnordic/sda-base:latest
     deploy:
