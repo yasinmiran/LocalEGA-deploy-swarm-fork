@@ -242,7 +242,6 @@ services:
       - POSTGRES_DB={{DB_DATABASE_NAME}}
       - POSTGRES_PASSWORD={{DB_LEGA_OUT_PASSWORD}}
       - OUTBOX_ENABLED=false
-      - BROKER_HOST={{MQ_HOST}}
     secrets:
       - source: client.pem
         target: /etc/ega/ssl/client.cert
