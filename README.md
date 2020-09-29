@@ -250,8 +250,6 @@ secrets:
     external: true
   ega.sec.pass:
     external: true
-  ega.pub.pem:
-    external: true
   jwt.pub.pem:
     external: true
 ```

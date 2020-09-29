@@ -77,7 +77,6 @@ ega.sec.pem:
 	@docker secret create $@ $@
 
 ega.pub.pem: ega.sec.pem
-	@docker secret create $@ $@
 
 docker-stack.yml:
 	@j2 docker-template.yml > docker-stack.yml
