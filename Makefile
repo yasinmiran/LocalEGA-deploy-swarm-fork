@@ -42,7 +42,7 @@ mkcert:
 	@mkcert -install
 
 localhost+5.pem: mkcert
-	@mkcert localhost db vault private-mq tsd proxy
+	@mkcert localhost db vault mq tsd proxy
 
 localhost+5-key.pem: localhost+5.pem
 
@@ -50,7 +50,7 @@ localhost+5.p12: localhost+5-key.pem
 	@openssl pkcs12 -export -out localhost+5.p12 -in localhost+5.pem -inkey localhost+5-key.pem -passout pass:"${SERVER_CERT_PASSWORD}"
 
 localhost+5-client.pem: mkcert
-	@mkcert -client localhost db vault private-mq tsd proxy
+	@mkcert -client localhost db vault mq tsd proxy
 
 localhost+5-client-key.pem: localhost+5-client.pem
 
