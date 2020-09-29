@@ -67,7 +67,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Sleep
-        run: sleep ${BINDIR}
+        run: sleep ${SLEEP}
 
       - name: List services
         run: make ls
