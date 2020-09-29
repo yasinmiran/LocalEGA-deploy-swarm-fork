@@ -217,6 +217,7 @@ services:
         delay: 5s
         window: 120s
     environment:
+      - SSL_ENABLED=false
       - SSL_MODE=require
       - ARCHIVE_PATH
       - KEYSTORE_PASSWORD
@@ -226,8 +227,6 @@ services:
       - OUTBOX_ENABLED
       - BROKER_HOST
     secrets:
-      - source: server.p12
-        target: /etc/ega/ssl/server.cert
       - source: client.pem
         target: /etc/ega/ssl/client.cert
       - source: jwt.pub.pem
@@ -242,8 +241,6 @@ services:
       - vault:/ega/archive
 
 secrets:
-  server.p12:
-    external: true
   client.pem:
     external: true
   ega.sec.pem:

@@ -228,7 +228,7 @@ public class IngestionTest {
         log.info("Visa JWT token: {}", token);
 
         String datasets = Unirest
-                .get("https://localhost:8080/metadata/datasets")
+                .get("http://localhost/metadata/datasets")
                 .header("Authorization", "Bearer " + token)
                 .asString()
                 .getBody();
@@ -243,13 +243,13 @@ public class IngestionTest {
                         archivePath,
                         rawSHA256Checksum).strip(),
                 Unirest
-                        .get(String.format("https://localhost:8080/metadata/datasets/%s/files", datasetId))
+                        .get(String.format("http://localhost/metadata/datasets/%s/files", datasetId))
                         .header("Authorization", "Bearer " + token)
                         .asString()
                         .getBody().strip());
 
         byte[] file = Unirest
-                .get(String.format("https://localhost:8080/files/%s", stableId))
+                .get(String.format("http://localhost/files/%s", stableId))
                 .header("Authorization", "Bearer " + token)
                 .asBytes()
                 .getBody();
@@ -261,7 +261,7 @@ public class IngestionTest {
         keyUtils.writeCrypt4GHKey(stringWriter, recipientKeyPair.getPublic(), null);
         String key = stringWriter.toString();
         file = Unirest
-                .get(String.format("https://localhost:8080/files/%s?destinationFormat=CRYPT4GH", stableId))
+                .get(String.format("http://localhost/files/%s?destinationFormat=CRYPT4GH", stableId))
                 .header("Authorization", "Bearer " + token)
                 .header("Public-Key", key)
                 .asBytes()

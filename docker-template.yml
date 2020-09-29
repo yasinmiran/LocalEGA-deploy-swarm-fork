@@ -228,7 +228,7 @@ services:
   doa:
     image: neicnordic/sda-doa:latest
     ports:
-      - 8080:8080
+      - 80:8080
     deploy:
       restart_policy:
         condition: on-failure
@@ -236,6 +236,7 @@ services:
         window: 120s
     environment:
       - SSL_MODE=require
+      - SSL_ENABLED=false
       - ARCHIVE_PATH={{ARCHIVE_PATH}}
       - KEYSTORE_PASSWORD={{SERVER_CERT_PASSWORD}}
       - DB_INSTANCE={{DB_HOST}}
@@ -244,8 +245,6 @@ services:
       - OUTBOX_ENABLED=false
       - BROKER_HOST={{MQ_HOST}}
     secrets:
-      - source: server.p12
-        target: /etc/ega/ssl/server.cert
       - source: client.pem
         target: /etc/ega/ssl/client.cert
       - source: jwt.pub.pem
