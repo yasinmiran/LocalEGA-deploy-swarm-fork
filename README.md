@@ -13,4 +13,4 @@ Docker Swarm deployment of LocalEGA
 
 `make bootstrap deploy` (CEGA-related env-vars should be set manually, e.g. `CEGA_CONNECTION`)
 
-Cleaning up: `make rm purge`
+Cleaning up: `make rm purge`.
