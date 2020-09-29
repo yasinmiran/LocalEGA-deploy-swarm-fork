@@ -134,12 +134,19 @@ services:
         condition: on-failure
         delay: 5s
         window: 120s
-    secrets:
-      - source: conf.ini
-        target: /etc/ega/conf.ini
+    environment:
+      - DEFAULT_LOG=debug
+      - INBOX_LOCATION
+      - ARCHIVE_LOCATION=/ega/%s
+      - ARCHIVE_USER=archive
+      - BROKER_CONNECTION
+      - BROKER_ENABLE_SSL=yes
+      - BROKER_VERIFY_PEER=no
+      - BROKER_VERIFY_HOSTNAME=no
+      - DB_CONNECTION
     volumes:
-      - </path/to/the/inbox>:/ega/inbox
-      - </path/to/the/archive>:/ega/archive
+      - tsd:/ega/inbox
+      - vault:/ega/archive
     user: lega
     entrypoint: ["ega-ingest"]
 
@@ -150,9 +157,17 @@ services:
         condition: on-failure
         delay: 5s
         window: 120s
+    environment:
+      - DEFAULT_LOG=debug
+      - C4GH_FILE_PASSPHRASE
+      - ARCHIVE_LOCATION=/ega/%s
+      - ARCHIVE_USER=archive
+      - BROKER_CONNECTION
+      - BROKER_ENABLE_SSL=yes
+      - BROKER_VERIFY_PEER=no
+      - BROKER_VERIFY_HOSTNAME=no
+      - DB_CONNECTION
     secrets:
-      - source: conf.ini
-        target: /etc/ega/conf.ini
       - source: ega.sec.pem
         target: /etc/ega/ega.sec
         uid: '1000'
@@ -170,11 +185,13 @@ services:
         condition: on-failure
         delay: 5s
         window: 120s
-    secrets:
-      - source: conf.ini
-        target: /etc/ega/conf.ini
-    volumes:
-      - vault:/ega/archive
+    environment:
+      - DEFAULT_LOG=debug
+      - BROKER_CONNECTION
+      - BROKER_ENABLE_SSL=yes
+      - BROKER_VERIFY_PEER=no
+      - BROKER_VERIFY_HOSTNAME=no
+      - DB_CONNECTION
     user: lega
     entrypoint: ["ega-finalize"]
 
@@ -222,11 +239,9 @@ services:
       - source: ega.sec.pass
         target: /etc/ega/crypt4gh/key.pass
     volumes:
-      - </path/to/the/inbox>:/ega/archive
+      - vault:/ega/archive
 
 secrets:
-  conf.ini:
-    external: true
   server.p12:
     external: true
   client.pem:

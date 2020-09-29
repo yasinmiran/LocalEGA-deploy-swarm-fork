@@ -199,7 +199,6 @@ buildNumber.properties
 *.pem
 *.der
 *.p12
-conf.ini
 ega.sec.pass
 init-mappings-db.sh
 docker-stack.yml

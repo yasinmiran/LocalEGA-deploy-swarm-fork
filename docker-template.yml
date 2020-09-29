@@ -152,9 +152,16 @@ services:
         condition: on-failure
         delay: 5s
         window: 120s
-    secrets:
-      - source: conf.ini
-        target: /etc/ega/conf.ini
+    environment:
+      - DEFAULT_LOG=debug
+      - INBOX_LOCATION=/ega/inbox/{{TSD_PROJECT}}-%s/files
+      - ARCHIVE_LOCATION=/ega/%s
+      - ARCHIVE_USER=archive
+      - BROKER_CONNECTION={{MQ_CONNECTION}}
+      - BROKER_ENABLE_SSL=yes
+      - BROKER_VERIFY_PEER=no
+      - BROKER_VERIFY_HOSTNAME=no
+      - DB_CONNECTION=postgres://{{DB_LEGA_IN_USER}}:{{DB_LEGA_IN_PASSWORD}}@{{DB_HOST}}:5432/{{DB_DATABASE_NAME}}?application_name=LocalEGA
     volumes:
       - tsd:/ega/inbox
       - vault:/ega/archive
@@ -168,9 +175,17 @@ services:
         condition: on-failure
         delay: 5s
         window: 120s
+    environment:
+      - DEFAULT_LOG=debug
+      - C4GH_FILE_PASSPHRASE={{KEY_PASSWORD}}
+      - ARCHIVE_LOCATION=/ega/%s
+      - ARCHIVE_USER=archive
+      - BROKER_CONNECTION={{MQ_CONNECTION}}
+      - BROKER_ENABLE_SSL=yes
+      - BROKER_VERIFY_PEER=no
+      - BROKER_VERIFY_HOSTNAME=no
+      - DB_CONNECTION=postgres://{{DB_LEGA_IN_USER}}:{{DB_LEGA_IN_PASSWORD}}@{{DB_HOST}}:5432/{{DB_DATABASE_NAME}}?application_name=LocalEGA
     secrets:
-      - source: conf.ini
-        target: /etc/ega/conf.ini
       - source: ega.sec.pem
         target: /etc/ega/ega.sec
         uid: '1000'
@@ -188,11 +203,13 @@ services:
         condition: on-failure
         delay: 5s
         window: 120s
-    secrets:
-      - source: conf.ini
-        target: /etc/ega/conf.ini
-    volumes:
-      - vault:/ega/archive
+    environment:
+      - DEFAULT_LOG=debug
+      - BROKER_CONNECTION={{MQ_CONNECTION}}
+      - BROKER_ENABLE_SSL=yes
+      - BROKER_VERIFY_PEER=no
+      - BROKER_VERIFY_HOSTNAME=no
+      - DB_CONNECTION=postgres://{{DB_LEGA_IN_USER}}:{{DB_LEGA_IN_PASSWORD}}@{{DB_HOST}}:5432/{{DB_DATABASE_NAME}}?application_name=LocalEGA
     user: lega
     entrypoint: ["ega-finalize"]
 
@@ -248,8 +265,6 @@ volumes:
   vault:
 
 secrets:
-  conf.ini:
-    external: true
   rootCA.pem:
     external: true
   rootCA.p12:
