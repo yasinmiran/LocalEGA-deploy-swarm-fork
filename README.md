@@ -220,12 +220,10 @@ services:
       - SSL_ENABLED=false
       - SSL_MODE=require
       - ARCHIVE_PATH
-      - KEYSTORE_PASSWORD
       - DB_INSTANCE
       - POSTGRES_DB
       - POSTGRES_PASSWORD
       - OUTBOX_ENABLED
-      - BROKER_HOST
     secrets:
       - source: client.pem
         target: /etc/ega/ssl/client.cert
