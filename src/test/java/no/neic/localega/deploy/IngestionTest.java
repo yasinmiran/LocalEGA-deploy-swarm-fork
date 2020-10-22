@@ -186,7 +186,8 @@ public class IngestionTest {
             Assert.fail("Verification failed");
         }
         archivePath = resultSet.getString(8);
-        stableId = resultSet.getString(13);
+        stableId = resultSet.getString(16);
+        log.info("Stable ID: {}", stableId);
         log.info("Archive path: {}", archivePath);
         log.info("Verification completed successfully");
     }

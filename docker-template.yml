@@ -153,7 +153,6 @@ services:
         delay: 5s
         window: 120s
     environment:
-      - DEFAULT_LOG=debug
       - INBOX_LOCATION=/ega/inbox/{{TSD_PROJECT}}-%s/files
       - ARCHIVE_LOCATION=/ega/%s
       - ARCHIVE_USER=archive
@@ -166,7 +165,7 @@ services:
       - tsd:/ega/inbox
       - vault:/ega/archive
     user: lega
-    entrypoint: ["ega-ingest"]
+    entrypoint: ["ega-ingest", "--log", "debug"]
 
   verify:
     image: neicnordic/sda-base:latest
@@ -176,7 +175,6 @@ services:
         delay: 5s
         window: 120s
     environment:
-      - DEFAULT_LOG=debug
       - C4GH_FILE_PASSPHRASE={{KEY_PASSWORD}}
       - ARCHIVE_LOCATION=/ega/%s
       - ARCHIVE_USER=archive
@@ -194,7 +192,7 @@ services:
     volumes:
       - vault:/ega/archive
     user: lega
-    entrypoint: ["ega-verify"]
+    entrypoint: ["ega-verify", "--log", "debug"]
 
   finalize:
     image: neicnordic/sda-base:latest
@@ -204,14 +202,13 @@ services:
         delay: 5s
         window: 120s
     environment:
-      - DEFAULT_LOG=debug
       - BROKER_CONNECTION={{MQ_CONNECTION}}
       - BROKER_ENABLE_SSL=yes
       - BROKER_VERIFY_PEER=no
       - BROKER_VERIFY_HOSTNAME=no
       - DB_CONNECTION=postgres://{{DB_LEGA_IN_USER}}:{{DB_LEGA_IN_PASSWORD}}@{{DB_HOST}}:5432/{{DB_DATABASE_NAME}}?application_name=LocalEGA
     user: lega
-    entrypoint: ["ega-finalize"]
+    entrypoint: ["ega-finalize", "--log", "debug"]
 
   mapper:
     image: neicnordic/sda-mapper:latest
