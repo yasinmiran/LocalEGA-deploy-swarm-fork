@@ -237,7 +237,7 @@ public class IngestionTest {
 
         Assert.assertEquals(
                 String.format(
-                        "[{\"fileId\":\"%s\",\"datasetId\":\"%s\",\"displayFileName\":\"%s\",\"fileName\":\"%s\",\"fileSize\":10490240,\"unencryptedChecksum\":\"%s\",\"unencryptedChecksumType\":\"SHA256\",\"fileStatus\":\"READY\"}]\n",
+                        "[{\"fileId\":\"%s\",\"datasetId\":\"%s\",\"displayFileName\":\"%s\",\"fileName\":\"%s\",\"fileSize\":10490240,\"unencryptedChecksum\":\"%s\",\"unencryptedChecksumType\":\"SHA256\",\"decryptedFileSize\":null,\"decryptedFileChecksum\":null,\"decryptedFileChecksumType\":null,\"fileStatus\":\"READY\"}]\n",
                         stableId,
                         datasetId,
                         encFile.getName(),
