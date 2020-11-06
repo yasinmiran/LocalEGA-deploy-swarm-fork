@@ -160,7 +160,7 @@ services:
 
   # Private stack
   ingest:
-    image: neicnordic/sda-pipeline:latest
+    image: neicnordic/sda-pipeline:sda-pipeline
     deploy:
       restart_policy:
         condition: on-failure
@@ -179,6 +179,7 @@ services:
       - BROKER_ROUTINGKEY=archived
       - BROKER_ROUTINGERROR=error
       - BROKER_SSL=true
+      - BROKER_INSECURESKIPVERIFY=true
       - BROKER_VERIFYPEER=false
       - DB_HOST={{DB_HOST}}
       - DB_PORT=5432
@@ -195,7 +196,7 @@ services:
     command: "sda-ingest"
 
   verify:
-    image: neicnordic/sda-pipeline:latest
+    image: neicnordic/sda-pipeline:sda-pipeline
     deploy:
       restart_policy:
         condition: on-failure
@@ -214,6 +215,7 @@ services:
       - BROKER_ROUTINGKEY=verified
       - BROKER_ROUTINGERROR=error
       - BROKER_SSL=true
+      - BROKER_INSECURESKIPVERIFY=true
       - BROKER_VERIFYPEER=false
       - C4GH_PASSPHRASE={{KEY_PASSWORD}}
       - C4GH_FILEPATH=/etc/ega/ega.sec
@@ -227,15 +229,12 @@ services:
     secrets:
       - source: ega.sec.pem
         target: /etc/ega/ega.sec
-        uid: '1000'
-        gid: '1000'
-        mode: 0600
     volumes:
       - vault:/ega/archive
     command: "sda-verify"
 
   finalize:
-    image: neicnordic/sda-pipeline:latest
+    image: neicnordic/sda-pipeline:sda-pipeline
     deploy:
       restart_policy:
         condition: on-failure
@@ -252,6 +251,7 @@ services:
       - BROKER_ROUTINGKEY=completed
       - BROKER_ROUTINGERROR=error
       - BROKER_SSL=true
+      - BROKER_INSECURESKIPVERIFY=true
       - BROKER_VERIFYPEER=false
       - DB_HOST={{DB_HOST}}
       - DB_PORT=5432
@@ -263,7 +263,7 @@ services:
     command: "sda-finalize"
 
   mapper:
-    image: neicnordic/sda-pipeline:latest
+    image: neicnordic/sda-pipeline:sda-pipeline
     deploy:
       restart_policy:
         condition: on-failure
@@ -277,9 +277,9 @@ services:
       - BROKER_VHOST={{PRIVATE_BROKER_VHOST}}
       - BROKER_QUEUE=mappings
       - BROKER_EXCHANGE=sda
-      - BROKER_ROUTINGKEY=
       - BROKER_ROUTINGERROR=error
       - BROKER_SSL=true
+      - BROKER_INSECURESKIPVERIFY=true
       - BROKER_VERIFYPEER=false
       - DB_HOST={{DB_HOST}}
       - DB_PORT=5432
