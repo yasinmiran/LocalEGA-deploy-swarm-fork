@@ -84,6 +84,11 @@ services:
         target: /etc/rabbitmq/ssl.key
       - source: rootCA.pem
         target: /etc/rabbitmq/CA.cert
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "5671" ]
+      interval: 5s
+      timeout: 20s
+      retries: 3
 
   # Public stack
   proxy:
@@ -174,10 +179,7 @@ services:
       - BROKER_ROUTINGKEY=archived
       - BROKER_ROUTINGERROR=error
       - BROKER_SSL=true
-      - BROKER_INSECURESKIPVERIFY=true
       - BROKER_VERIFYPEER=false
-      - C4GH_PASSPHRASE={{KEY_PASSWORD}}
-      - C4GH_FILEPATH=/etc/ega/ega.sec
       - DB_HOST={{DB_HOST}}
       - DB_PORT=5432
       - DB_USER={{DB_LEGA_IN_USER}}
@@ -187,9 +189,6 @@ services:
       - INBOX_TYPE=posix
       - INBOX_LOCATION=/ega/inbox
       - LOG_LEVEL=debug
-    secrets:
-      - source: ega.sec.pem
-        target: /etc/ega/ega.sec
     volumes:
       - tsd:/ega/inbox
       - vault:/ega/archive
@@ -215,7 +214,6 @@ services:
       - BROKER_ROUTINGKEY=verified
       - BROKER_ROUTINGERROR=error
       - BROKER_SSL=true
-      - BROKER_INSECURESKIPVERIFY=true
       - BROKER_VERIFYPEER=false
       - C4GH_PASSPHRASE={{KEY_PASSWORD}}
       - C4GH_FILEPATH=/etc/ega/ega.sec
@@ -229,6 +227,9 @@ services:
     secrets:
       - source: ega.sec.pem
         target: /etc/ega/ega.sec
+        uid: '1000'
+        gid: '1000'
+        mode: 0600
     volumes:
       - vault:/ega/archive
     command: "sda-verify"
@@ -251,7 +252,6 @@ services:
       - BROKER_ROUTINGKEY=completed
       - BROKER_ROUTINGERROR=error
       - BROKER_SSL=true
-      - BROKER_INSECURESKIPVERIFY=true
       - BROKER_VERIFYPEER=false
       - DB_HOST={{DB_HOST}}
       - DB_PORT=5432
@@ -277,9 +277,9 @@ services:
       - BROKER_VHOST={{PRIVATE_BROKER_VHOST}}
       - BROKER_QUEUE=mappings
       - BROKER_EXCHANGE=sda
+      - BROKER_ROUTINGKEY=
       - BROKER_ROUTINGERROR=error
       - BROKER_SSL=true
-      - BROKER_INSECURESKIPVERIFY=true
       - BROKER_VERIFYPEER=false
       - DB_HOST={{DB_HOST}}
       - DB_PORT=5432
