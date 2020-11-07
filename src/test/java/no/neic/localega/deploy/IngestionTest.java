@@ -150,7 +150,7 @@ public class IngestionTest {
                 .correlationId(UUID.randomUUID().toString())
                 .build();
 
-        String message = String.format("{\"user\":\"%s\",\"filepath\":\"%s\"}", "dummy", encFile.getName());
+        String message = String.format("{\"type\":\"ingest\",\"user\":\"%s\",\"filepath\":\"%s\"}", "dummy", encFile.getName());
         log.info(message);
         channel.basicPublish("localega.v1",
                 "files",
@@ -211,7 +211,7 @@ public class IngestionTest {
                 .correlationId(UUID.randomUUID().toString())
                 .build();
 
-        String message = String.format("{\"accession_ids\":[\"%s\"],\"dataset_id\":\"%s\"}", stableId, datasetId);
+        String message = String.format("{\"type\":\"mapping\",\"accession_ids\":[\"%s\"],\"dataset_id\":\"%s\"}", stableId, datasetId);
         log.info(message);
         channel.basicPublish("",
                 "mappings",
