@@ -84,11 +84,6 @@ services:
         target: /etc/rabbitmq/ssl.key
       - source: rootCA.pem
         target: /etc/rabbitmq/CA.cert
-    healthcheck:
-      test: [ "CMD", "nc", "-z", "localhost", "5671" ]
-      interval: 5s
-      timeout: 20s
-      retries: 3
 
   # Public stack
   proxy:
@@ -160,7 +155,7 @@ services:
 
   # Private stack
   ingest:
-    image: neicnordic/sda-pipeline:sda-pipeline
+    image: neicnordic/sda-pipeline:latest
     deploy:
       restart_policy:
         condition: on-failure
@@ -181,6 +176,8 @@ services:
       - BROKER_SSL=true
       - BROKER_INSECURESKIPVERIFY=true
       - BROKER_VERIFYPEER=false
+      - C4GH_PASSPHRASE={{KEY_PASSWORD}}
+      - C4GH_FILEPATH=/etc/ega/ega.sec
       - DB_HOST={{DB_HOST}}
       - DB_PORT=5432
       - DB_USER={{DB_LEGA_IN_USER}}
@@ -190,13 +187,16 @@ services:
       - INBOX_TYPE=posix
       - INBOX_LOCATION=/ega/inbox
       - LOG_LEVEL=debug
+    secrets:
+      - source: ega.sec.pem
+        target: /etc/ega/ega.sec
     volumes:
       - tsd:/ega/inbox
       - vault:/ega/archive
     command: "sda-ingest"
 
   verify:
-    image: neicnordic/sda-pipeline:sda-pipeline
+    image: neicnordic/sda-pipeline:latest
     deploy:
       restart_policy:
         condition: on-failure
@@ -234,7 +234,7 @@ services:
     command: "sda-verify"
 
   finalize:
-    image: neicnordic/sda-pipeline:sda-pipeline
+    image: neicnordic/sda-pipeline:latest
     deploy:
       restart_policy:
         condition: on-failure
@@ -263,7 +263,7 @@ services:
     command: "sda-finalize"
 
   mapper:
-    image: neicnordic/sda-pipeline:sda-pipeline
+    image: neicnordic/sda-pipeline:latest
     deploy:
       restart_policy:
         condition: on-failure
