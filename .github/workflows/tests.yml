@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       BINDIR: /home/runner/.local/bin/
       SLEEP: ${{ secrets.SLEEP }}
       CEGA_MQ_CONNECTION: ${{ secrets.CEGA_MQ_CONNECTION }}
