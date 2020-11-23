@@ -54,6 +54,11 @@ services:
         mode: 0600
     volumes:
       - db:/ega
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "localhost", "-U", "lega_out"]
+      interval: 5s
+      timeout: 20s
+      retries: 3
 
   mq:
     image: uiobmi/localega-broker-private:latest
