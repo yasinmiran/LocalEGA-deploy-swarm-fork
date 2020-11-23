@@ -235,19 +235,20 @@ public class IngestionTest {
                 .getBody();
         Assert.assertEquals(String.format("[\"%s\"]", datasetId).strip(), datasets.strip());
 
-        Assert.assertEquals(
-                String.format(
-                        "[{\"fileId\":\"%s\",\"datasetId\":\"%s\",\"displayFileName\":\"%s\",\"fileName\":\"%s\",\"fileSize\":10490240,\"unencryptedChecksum\":\"%s\",\"unencryptedChecksumType\":\"SHA256\",\"decryptedFileSize\":null,\"decryptedFileChecksum\":null,\"decryptedFileChecksumType\":null,\"fileStatus\":\"READY\"}]\n",
-                        stableId,
-                        datasetId,
-                        encFile.getName(),
-                        archivePath,
-                        rawSHA256Checksum).strip(),
-                Unirest
-                        .get(String.format("http://localhost/metadata/datasets/%s/files", datasetId))
-                        .header("Authorization", "Bearer " + token)
-                        .asString()
-                        .getBody().strip());
+        String expected = String.format(
+                "[{\"fileId\":\"%s\",\"datasetId\":\"%s\",\"displayFileName\":\"%s\",\"fileName\":\"%s\",\"fileSize\":10490240,\"unencryptedChecksum\":null,\"unencryptedChecksumType\":\"SHA256\",\"decryptedFileSize\":null,\"decryptedFileChecksum\":null,\"decryptedFileChecksumType\":null,\"fileStatus\":\"READY\"}]\n",
+                stableId,
+                datasetId,
+                encFile.getName(),
+                archivePath).strip();
+        String actual = Unirest
+                .get(String.format("http://localhost/metadata/datasets/%s/files", datasetId))
+                .header("Authorization", "Bearer " + token)
+                .asString()
+                .getBody().strip();
+        log.info("Expected: {}", expected);
+        log.info("Actual: {}", actual);
+        Assert.assertEquals(expected, actual);
 
         byte[] file = Unirest
                 .get(String.format("http://localhost/files/%s", stableId))
