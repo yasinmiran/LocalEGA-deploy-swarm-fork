@@ -16,7 +16,7 @@ export DB_LEGA_IN_USER=lega_in
 export DB_LEGA_IN_PASSWORD=in_passw0rd
 export DB_LEGA_OUT_USER=lega_out
 export DB_LEGA_OUT_PASSWORD=0ut_passw0rd
-export ARCHIVE_PATH=/ega/archive
+export ARCHIVE_PATH=/ega/archive/
 export PUBLIC_BROKER_USER=admin
 export PUBLIC_BROKER_HASH=4tHURqDiZzypw0NTvoHhpn8/MMgONWonWxgRZ4NXgR8nZRBz
 export PUBLIC_BROKER_PASSWORD=guest
@@ -34,6 +34,7 @@ export POSTGRES_CONNECTION=postgres://postgres:p0stgres_passw0rd@postgres:5432/p
 
 bootstrap: init $(FILES)
 	@chmod 644 $(FILES)
+	@mkdir -p /tmp/tsd /tmp/vault /tmp/db
 
 init:
 	@-docker swarm init
@@ -154,7 +155,8 @@ rm:
 	@sleep 10
 
 clean:
-	@rm -f $(FILES)
+	@rm -rf $(FILES)
+	@rm -rf /tmp/tsd /tmp/vault /tmp/db
 	@docker secret rm $(FILES)
 
 test:

@@ -18,7 +18,7 @@ services:
       - source: server.p12
         target: /etc/ega/ssl/server.cert
     volumes:
-      - tsd:/tsd/p11/data/durable/apps/ega/
+      - /tmp/tsd:/tsd/p11/data/durable/apps/ega/
 
   db:
     image: neicnordic/sda-db:latest
@@ -53,7 +53,7 @@ services:
         gid: '70'
         mode: 0600
     volumes:
-      - db:/ega
+      - /tmp/db:/ega
     healthcheck:
       test: ["CMD", "pg_isready", "-h", "localhost", "-U", "lega_out"]
       interval: 5s
@@ -190,8 +190,8 @@ services:
       - INBOX_LOCATION=/ega/inbox
       - LOG_LEVEL=debug
     volumes:
-      - tsd:/ega/inbox
-      - vault:/ega/archive
+      - /tmp/tsd:/ega/inbox
+      - /tmp/vault:/ega/archive
     command: "sda-ingest"
 
   verify:
@@ -231,7 +231,7 @@ services:
         gid: '1000'
         mode: 0600
     volumes:
-      - vault:/ega/archive
+      - /tmp/vault:/ega/archive
     command: "sda-verify"
 
   finalize:
@@ -319,12 +319,7 @@ services:
       - source: ega.sec.pass
         target: /etc/ega/crypt4gh/key.pass
     volumes:
-      - vault:/ega/archive
-
-volumes:
-  tsd:
-  db:
-  vault:
+      - /tmp/vault:/ega/archive
 
 secrets:
   rootCA.pem:
