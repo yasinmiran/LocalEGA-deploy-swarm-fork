@@ -180,6 +180,7 @@ services:
       - BROKER_ROUTINGERROR=error
       - BROKER_SSL=true
       - BROKER_VERIFYPEER=false
+      - BROKER_INSECURESKIPVERIFY=true
       - DB_HOST={{DB_HOST}}
       - DB_PORT=5432
       - DB_USER={{DB_LEGA_IN_USER}}
@@ -215,6 +216,7 @@ services:
       - BROKER_ROUTINGERROR=error
       - BROKER_SSL=true
       - BROKER_VERIFYPEER=false
+      - BROKER_INSECURESKIPVERIFY=true
       - C4GH_PASSPHRASE={{KEY_PASSWORD}}
       - C4GH_FILEPATH=/etc/ega/ega.sec
       - DB_HOST={{DB_HOST}}
@@ -227,9 +229,6 @@ services:
     secrets:
       - source: ega.sec.pem
         target: /etc/ega/ega.sec
-        uid: '1000'
-        gid: '1000'
-        mode: 0600
     volumes:
       - /tmp/vault:/ega/archive
     command: "sda-verify"
@@ -253,6 +252,7 @@ services:
       - BROKER_ROUTINGERROR=error
       - BROKER_SSL=true
       - BROKER_VERIFYPEER=false
+      - BROKER_INSECURESKIPVERIFY=true
       - DB_HOST={{DB_HOST}}
       - DB_PORT=5432
       - DB_USER={{DB_LEGA_IN_USER}}
@@ -277,10 +277,10 @@ services:
       - BROKER_VHOST={{PRIVATE_BROKER_VHOST}}
       - BROKER_QUEUE=mappings
       - BROKER_EXCHANGE=sda
-      - BROKER_ROUTINGKEY=
       - BROKER_ROUTINGERROR=error
       - BROKER_SSL=true
       - BROKER_VERIFYPEER=false
+      - BROKER_INSECURESKIPVERIFY=true
       - DB_HOST={{DB_HOST}}
       - DB_PORT=5432
       - DB_USER={{DB_LEGA_OUT_USER}}
