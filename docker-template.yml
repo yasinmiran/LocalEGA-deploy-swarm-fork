@@ -181,6 +181,8 @@ services:
       - BROKER_SSL=true
       - BROKER_VERIFYPEER=false
       - BROKER_INSECURESKIPVERIFY=true
+      - C4GH_PASSPHRASE={{KEY_PASSWORD}}
+      - C4GH_FILEPATH=/etc/ega/ega.sec
       - DB_HOST={{DB_HOST}}
       - DB_PORT=5432
       - DB_USER={{DB_LEGA_IN_USER}}
@@ -190,6 +192,9 @@ services:
       - INBOX_TYPE=posix
       - INBOX_LOCATION=/ega/inbox
       - LOG_LEVEL=debug
+    secrets:
+      - source: ega.sec.pem
+        target: /etc/ega/ega.sec
     volumes:
       - /tmp/tsd:/ega/inbox
       - /tmp/vault:/ega/archive
