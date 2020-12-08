@@ -228,7 +228,7 @@ services:
       - MQ_CONNECTION={{MQ_CONNECTION}}
 
   doa:
-    image: neicnordic/sda-doa:latest
+    image: neicnordic/sda-doa:release-v1.6.0
     ports:
       - 80:8080
     deploy:
