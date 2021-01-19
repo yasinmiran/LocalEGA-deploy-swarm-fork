@@ -18,7 +18,7 @@ services:
       - source: server.p12
         target: /etc/ega/ssl/server.cert
     volumes:
-      - tsd:/tsd/p11/data/durable/apps/ega/
+      - /tmp/tsd:/tsd/p11/data/durable/apps/ega/
 
   db:
     image: neicnordic/sda-db:latest
@@ -53,7 +53,7 @@ services:
         gid: '70'
         mode: 0600
     volumes:
-      - db:/ega
+      - /tmp/db:/ega
     healthcheck:
       test: ["CMD", "pg_isready", "-h", "localhost", "-U", "lega_out"]
       interval: 5s
@@ -61,7 +61,7 @@ services:
       retries: 3
 
   mq:
-    image: uiobmi/localega-broker-private:latest
+    image: uiobmi/localega-broker-private:sda-pipeline
     ports:
       - 5671:5671
       - 15671:15671
@@ -71,6 +71,7 @@ services:
         delay: 5s
         window: 120s
     environment:
+      - VIRTUAL_HOST=test
       - SSL_VERIFY=verify_peer
       - SSL_FAIL_IF_NO_PEER_CERT=false
       - SSL_DEPTH=2
@@ -83,10 +84,15 @@ services:
         target: /etc/rabbitmq/ssl.key
       - source: rootCA.pem
         target: /etc/rabbitmq/CA.cert
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "5671" ]
+      interval: 5s
+      timeout: 20s
+      retries: 3
 
   # Public stack
   proxy:
-    image: uiobmi/localega-tsd-proxy:latest
+    image: uiobmi/localega-tsd-proxy:sda-pipeline
     ports:
       - 443:8080
     deploy:
@@ -123,7 +129,7 @@ services:
         target: /etc/ega/jwt/visa.pem
 
   interceptor:
-    image: uiobmi/mq-interceptor:latest
+    image: uiobmi/mq-interceptor:sda-pipeline
     deploy:
       restart_policy:
         condition: on-failure
@@ -132,7 +138,10 @@ services:
     environment:
       - POSTGRES_CONNECTION={{POSTGRES_CONNECTION}}
       - CEGA_MQ_CONNECTION={{CEGA_MQ_CONNECTION}}
-      - LEGA_MQ_CONNECTION={{PRIVATE_CONNECTION}}
+      - CEGA_MQ_EXCHANGE=localega.v1
+      - CEGA_MQ_QUEUE=v1.files
+      - LEGA_MQ_CONNECTION={{MQ_CONNECTION}}
+      - LEGA_MQ_EXCHANGE=sda
 
   postgres:
     image: postgres
@@ -151,81 +160,140 @@ services:
 
   # Private stack
   ingest:
-    image: neicnordic/sda-base:latest
+    image: neicnordic/sda-pipeline:latest
     deploy:
       restart_policy:
         condition: on-failure
         delay: 5s
         window: 120s
     environment:
-      - INBOX_LOCATION=/ega/inbox/{{TSD_PROJECT}}-%s/files
-      - ARCHIVE_LOCATION=/ega/%s
-      - ARCHIVE_USER=archive
-      - BROKER_CONNECTION={{MQ_CONNECTION}}
-      - BROKER_ENABLE_SSL=yes
-      - BROKER_VERIFY_PEER=no
-      - BROKER_VERIFY_HOSTNAME=no
-      - DB_CONNECTION=postgres://{{DB_LEGA_IN_USER}}:{{DB_LEGA_IN_PASSWORD}}@{{DB_HOST}}:5432/{{DB_DATABASE_NAME}}?application_name=LocalEGA
-    volumes:
-      - tsd:/ega/inbox
-      - vault:/ega/archive
-    user: lega
-    entrypoint: ["ega-ingest", "--log", "debug"]
-
-  verify:
-    image: neicnordic/sda-base:latest
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        window: 120s
-    environment:
-      - C4GH_FILE_PASSPHRASE={{KEY_PASSWORD}}
-      - ARCHIVE_LOCATION=/ega/%s
-      - ARCHIVE_USER=archive
-      - BROKER_CONNECTION={{MQ_CONNECTION}}
-      - BROKER_ENABLE_SSL=yes
-      - BROKER_VERIFY_PEER=no
-      - BROKER_VERIFY_HOSTNAME=no
-      - DB_CONNECTION=postgres://{{DB_LEGA_IN_USER}}:{{DB_LEGA_IN_PASSWORD}}@{{DB_HOST}}:5432/{{DB_DATABASE_NAME}}?application_name=LocalEGA
+      - ARCHIVE_TYPE=posix
+      - ARCHIVE_LOCATION=/ega/archive
+      - BROKER_HOST={{MQ_HOST}}
+      - BROKER_PORT=5671
+      - BROKER_USER={{PRIVATE_BROKER_USER}}
+      - BROKER_PASSWORD={{PRIVATE_BROKER_PASSWORD}}
+      - BROKER_VHOST={{PRIVATE_BROKER_VHOST}}
+      - BROKER_QUEUE=ingest
+      - BROKER_EXCHANGE=sda
+      - BROKER_ROUTINGKEY=archived
+      - BROKER_ROUTINGERROR=error
+      - BROKER_SSL=true
+      - BROKER_VERIFYPEER=false
+      - BROKER_INSECURESKIPVERIFY=true
+      - C4GH_PASSPHRASE={{KEY_PASSWORD}}
+      - C4GH_FILEPATH=/etc/ega/ega.sec
+      - DB_HOST={{DB_HOST}}
+      - DB_PORT=5432
+      - DB_USER={{DB_LEGA_IN_USER}}
+      - DB_PASSWORD={{DB_LEGA_IN_PASSWORD}}
+      - DB_DATABASE=lega
+      - DB_SSLMODE=require
+      - INBOX_TYPE=posix
+      - INBOX_LOCATION=/ega/inbox
+      - LOG_LEVEL=debug
     secrets:
       - source: ega.sec.pem
         target: /etc/ega/ega.sec
-        uid: '1000'
-        gid: '1000'
-        mode: 0600
     volumes:
-      - vault:/ega/archive
-    user: lega
-    entrypoint: ["ega-verify", "--log", "debug"]
+      - /tmp/tsd:/ega/inbox
+      - /tmp/vault:/ega/archive
+    command: "sda-ingest"
+
+  verify:
+    image: neicnordic/sda-pipeline:latest
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - ARCHIVE_TYPE=posix
+      - ARCHIVE_LOCATION=/ega/archive
+      - BROKER_HOST={{MQ_HOST}}
+      - BROKER_PORT=5671
+      - BROKER_USER={{PRIVATE_BROKER_USER}}
+      - BROKER_PASSWORD={{PRIVATE_BROKER_PASSWORD}}
+      - BROKER_VHOST={{PRIVATE_BROKER_VHOST}}
+      - BROKER_QUEUE=archived
+      - BROKER_EXCHANGE=sda
+      - BROKER_ROUTINGKEY=verified
+      - BROKER_ROUTINGERROR=error
+      - BROKER_SSL=true
+      - BROKER_VERIFYPEER=false
+      - BROKER_INSECURESKIPVERIFY=true
+      - C4GH_PASSPHRASE={{KEY_PASSWORD}}
+      - C4GH_FILEPATH=/etc/ega/ega.sec
+      - DB_HOST={{DB_HOST}}
+      - DB_PORT=5432
+      - DB_USER={{DB_LEGA_IN_USER}}
+      - DB_PASSWORD={{DB_LEGA_IN_PASSWORD}}
+      - DB_DATABASE=lega
+      - DB_SSLMODE=require
+      - LOG_LEVEL=debug
+    secrets:
+      - source: ega.sec.pem
+        target: /etc/ega/ega.sec
+    volumes:
+      - /tmp/vault:/ega/archive
+    command: "sda-verify"
 
   finalize:
-    image: neicnordic/sda-base:latest
+    image: neicnordic/sda-pipeline:latest
     deploy:
       restart_policy:
         condition: on-failure
         delay: 5s
         window: 120s
     environment:
-      - BROKER_CONNECTION={{MQ_CONNECTION}}
-      - BROKER_ENABLE_SSL=yes
-      - BROKER_VERIFY_PEER=no
-      - BROKER_VERIFY_HOSTNAME=no
-      - DB_CONNECTION=postgres://{{DB_LEGA_IN_USER}}:{{DB_LEGA_IN_PASSWORD}}@{{DB_HOST}}:5432/{{DB_DATABASE_NAME}}?application_name=LocalEGA
-    user: lega
-    entrypoint: ["ega-finalize", "--log", "debug"]
+      - BROKER_HOST={{MQ_HOST}}
+      - BROKER_PORT=5671
+      - BROKER_USER={{PRIVATE_BROKER_USER}}
+      - BROKER_PASSWORD={{PRIVATE_BROKER_PASSWORD}}
+      - BROKER_VHOST={{PRIVATE_BROKER_VHOST}}
+      - BROKER_QUEUE=accessionIDs
+      - BROKER_EXCHANGE=sda
+      - BROKER_ROUTINGKEY=completed
+      - BROKER_ROUTINGERROR=error
+      - BROKER_SSL=true
+      - BROKER_VERIFYPEER=false
+      - BROKER_INSECURESKIPVERIFY=true
+      - DB_HOST={{DB_HOST}}
+      - DB_PORT=5432
+      - DB_USER={{DB_LEGA_IN_USER}}
+      - DB_PASSWORD={{DB_LEGA_IN_PASSWORD}}
+      - DB_DATABASE=lega
+      - DB_SSLMODE=require
+      - LOG_LEVEL=debug
+    command: "sda-finalize"
 
   mapper:
-    image: neicnordic/sda-mapper:latest
+    image: neicnordic/sda-pipeline:latest
     deploy:
       restart_policy:
         condition: on-failure
         delay: 5s
         window: 120s
     environment:
-      - DB_IN_CONNECTION={{DB_IN_CONNECTION}}
-      - DB_OUT_CONNECTION={{DB_OUT_CONNECTION}}
-      - MQ_CONNECTION={{MQ_CONNECTION}}
+      - BROKER_HOST={{MQ_HOST}}
+      - BROKER_PORT=5671
+      - BROKER_USER={{PRIVATE_BROKER_USER}}
+      - BROKER_PASSWORD={{PRIVATE_BROKER_PASSWORD}}
+      - BROKER_VHOST={{PRIVATE_BROKER_VHOST}}
+      - BROKER_QUEUE=mappings
+      - BROKER_EXCHANGE=sda
+      - BROKER_ROUTINGERROR=error
+      - BROKER_SSL=true
+      - BROKER_VERIFYPEER=false
+      - BROKER_INSECURESKIPVERIFY=true
+      - DB_HOST={{DB_HOST}}
+      - DB_PORT=5432
+      - DB_USER={{DB_LEGA_OUT_USER}}
+      - DB_PASSWORD={{DB_LEGA_OUT_PASSWORD}}
+      - DB_DATABASE=lega
+      - DB_SSLMODE=require
+      - LOG_LEVEL=debug
+    command: "sda-mapper"
 
   doa:
     image: neicnordic/sda-doa:release-v1.6.0
@@ -256,12 +324,7 @@ services:
       - source: ega.sec.pass
         target: /etc/ega/crypt4gh/key.pass
     volumes:
-      - vault:/ega/archive
-
-volumes:
-  tsd:
-  db:
-  vault:
+      - /tmp/vault:/ega/archive
 
 secrets:
   rootCA.pem:

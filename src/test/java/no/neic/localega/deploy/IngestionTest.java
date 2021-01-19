@@ -22,6 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.*;
+import java.math.BigInteger;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -38,6 +39,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Base64;
 import java.util.Properties;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
@@ -150,7 +152,7 @@ public class IngestionTest {
                 .correlationId(UUID.randomUUID().toString())
                 .build();
 
-        String message = String.format("{\"user\":\"%s\",\"filepath\":\"%s\"}", "dummy", encFile.getName());
+        String message = String.format("{\"type\":\"ingest\",\"user\":\"%s\",\"filepath\":\"/p11-dummy@elixir-europe.org/files/%s\"}", "dummy", encFile.getName());
         log.info(message);
         channel.basicPublish("localega.v1",
                 "files",
@@ -180,7 +182,7 @@ public class IngestionTest {
         java.sql.Connection conn = DriverManager.getConnection(url, props);
         String sql = "select * from local_ega.files where status = 'READY' AND inbox_path = ?";
         PreparedStatement statement = conn.prepareStatement(sql);
-        statement.setString(1, encFile.getName());
+        statement.setString(1, "/p11-dummy@elixir-europe.org/files/" + encFile.getName());
         ResultSet resultSet = statement.executeQuery();
         if (resultSet.wasNull() || !resultSet.next()) {
             Assert.fail("Verification failed");
@@ -195,9 +197,9 @@ public class IngestionTest {
     private void map() throws NoSuchAlgorithmException, KeyManagementException, URISyntaxException, IOException, TimeoutException {
         log.info("Mapping file to a dataset...");
 
-        datasetId = "EGAD" + UUID.randomUUID().toString().replace("-", "");
+        datasetId = "EGAD" + getRandomNumber(11);
 
-        String mqConnectionString = String.format("amqps://%s:%s@localhost:5671/%%2F", System.getenv("PRIVATE_BROKER_USER"), System.getenv("PRIVATE_BROKER_PASSWORD"));
+        String mqConnectionString = System.getenv("CEGA_MQ_CONNECTION");
         ConnectionFactory factory = new ConnectionFactory();
         factory.setUri(mqConnectionString);
 
@@ -211,10 +213,10 @@ public class IngestionTest {
                 .correlationId(UUID.randomUUID().toString())
                 .build();
 
-        String message = String.format("{\"accession_ids\":[\"%s\"],\"dataset_id\":\"%s\"}", stableId, datasetId);
+        String message = String.format("{\"type\":\"mapping\",\"accession_ids\":[\"%s\"],\"dataset_id\":\"%s\"}", stableId, datasetId);
         log.info(message);
-        channel.basicPublish("",
-                "mappings",
+        channel.basicPublish("localega.v1",
+                "mapping",
                 properties,
                 message.getBytes());
 
@@ -236,11 +238,12 @@ public class IngestionTest {
         Assert.assertEquals(String.format("[\"%s\"]", datasetId).strip(), datasets.strip());
 
         String expected = String.format(
-                "[{\"fileId\":\"%s\",\"datasetId\":\"%s\",\"displayFileName\":\"%s\",\"fileName\":\"%s\",\"fileSize\":10490240,\"unencryptedChecksum\":null,\"unencryptedChecksumType\":null,\"decryptedFileSize\":null,\"decryptedFileChecksum\":null,\"decryptedFileChecksumType\":null,\"fileStatus\":\"READY\"}]\n",
+                "[{\"fileId\":\"%s\",\"datasetId\":\"%s\",\"displayFileName\":\"%s\",\"fileName\":\"%s\",\"fileSize\":10490240,\"unencryptedChecksum\":null,\"unencryptedChecksumType\":null,\"decryptedFileSize\":10485760,\"decryptedFileChecksum\":\"%s\",\"decryptedFileChecksumType\":\"SHA256\",\"fileStatus\":\"READY\"}]\n",
                 stableId,
                 datasetId,
                 encFile.getName(),
-                archivePath).strip();
+                archivePath,
+                rawSHA256Checksum).strip();
         String actual = Unirest
                 .get(String.format("http://localhost/metadata/datasets/%s/files", datasetId))
                 .header("Authorization", "Bearer " + token)
@@ -328,6 +331,15 @@ public class IngestionTest {
                 .trim();
         byte[] decodedKey = Base64.getDecoder().decode(encodedKey);
         return (RSAPrivateKey) keyFactory.generatePrivate(new PKCS8EncodedKeySpec(decodedKey));
+    }
+
+    private String getRandomNumber(int digCount) {
+        Random rnd = new Random();
+        StringBuilder sb = new StringBuilder(digCount);
+        for (int i = 0; i < digCount; i++) {
+            sb.append((char) ('0' + rnd.nextInt(10)));
+        }
+        return sb.toString();
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")

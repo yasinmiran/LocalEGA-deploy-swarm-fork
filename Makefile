@@ -16,16 +16,16 @@ export DB_LEGA_IN_USER=lega_in
 export DB_LEGA_IN_PASSWORD=in_passw0rd
 export DB_LEGA_OUT_USER=lega_out
 export DB_LEGA_OUT_PASSWORD=0ut_passw0rd
-export ARCHIVE_PATH=/ega/archive
+export ARCHIVE_PATH=/ega/archive/
 export PUBLIC_BROKER_USER=admin
 export PUBLIC_BROKER_HASH=4tHURqDiZzypw0NTvoHhpn8/MMgONWonWxgRZ4NXgR8nZRBz
 export PUBLIC_BROKER_PASSWORD=guest
 export PRIVATE_BROKER_USER=admin
 export PRIVATE_BROKER_PASSWORD=guest
+export PRIVATE_BROKER_VHOST=test
 export PRIVATE_BROKER_HASH=4tHURqDiZzypw0NTvoHhpn8/MMgONWonWxgRZ4NXgR8nZRBz
 export MQ_HOST=mq
-export PRIVATE_CONNECTION=amqps://admin:guest@mq:5671/%2F?heartbeat=0\&connection_attempts=30\&retry_delay=10\&server_name_indication=disable\&verify=verify_peer\&fail_if_no_peer_cert=true\&cacertfile=/etc/rabbitmq/CA.cert\&certfile=/etc/ega/ssl.cert\&keyfile=/etc/ega/ssl.key
-export MQ_CONNECTION=amqps://admin:guest@mq:5671/%2F
+export MQ_CONNECTION=amqps://admin:guest@mq:5671/test
 export DB_IN_CONNECTION=postgres://lega_in:in_passw0rd@db:5432/lega?application_name=LocalEGA
 export DB_OUT_CONNECTION=postgres://lega_out:0ut_passw0rd@db:5432/lega?application_name=LocalEGA
 export KEY_PASSWORD=key_passw0rd
@@ -34,6 +34,8 @@ export POSTGRES_CONNECTION=postgres://postgres:p0stgres_passw0rd@postgres:5432/p
 
 bootstrap: init $(FILES)
 	@chmod 644 $(FILES)
+	@mkdir -p /tmp/tsd /tmp/vault /tmp/db
+	@chmod 777 /tmp/tsd /tmp/vault /tmp/db
 
 init:
 	@-docker swarm init
@@ -154,7 +156,8 @@ rm:
 	@sleep 10
 
 clean:
-	@rm -f $(FILES)
+	@rm -rf $(FILES)
+	@rm -rf /tmp/tsd /tmp/vault /tmp/db
 	@docker secret rm $(FILES)
 
 test:
