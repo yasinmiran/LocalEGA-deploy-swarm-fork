@@ -35,8 +35,8 @@ export POSTGRES_CONNECTION=postgres://postgres:p0stgres_passw0rd@postgres:5432/p
 bootstrap: init $(FILES)
 	@chmod 644 $(FILES)
 	@mkdir -p /tmp/tsd /tmp/vault /tmp/db
-	@chown 65534:65534 /tmp/vault
-	@chmod 777 /tmp/tsd /tmp/vault /tmp/db
+	@sudo chown 65534:65534 /tmp/vault
+	@sudo chmod 777 /tmp/tsd /tmp/vault /tmp/db
 
 init:
 	@-docker swarm init
