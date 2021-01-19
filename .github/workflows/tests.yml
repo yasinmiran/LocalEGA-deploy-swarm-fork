@@ -69,8 +69,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Sleep
-        run: sleep ${SLEEP}
+      - name: Sleep Action
+        uses: juliangruber/sleep-action@v1.0.1
+        with:
+          time: 1m
 
       - name: List services
         run: make ls

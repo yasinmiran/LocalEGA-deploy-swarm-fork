@@ -61,7 +61,7 @@ services:
       retries: 3
 
   mq:
-    image: uiobmi/localega-broker-private:sda-pipeline
+    image: uiobmi/localega-broker-private:latest
     ports:
       - 5671:5671
       - 15671:15671
@@ -92,7 +92,7 @@ services:
 
   # Public stack
   proxy:
-    image: uiobmi/localega-tsd-proxy:sda-pipeline
+    image: uiobmi/localega-tsd-proxy:latest
     ports:
       - 443:8080
     deploy:
@@ -129,7 +129,7 @@ services:
         target: /etc/ega/jwt/visa.pem
 
   interceptor:
-    image: uiobmi/mq-interceptor:sda-pipeline
+    image: uiobmi/mq-interceptor:latest
     deploy:
       restart_policy:
         condition: on-failure
