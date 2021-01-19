@@ -72,7 +72,7 @@ jobs:
       - name: Sleep Action
         uses: juliangruber/sleep-action@v1.0.1
         with:
-          time: 3m
+          time: 2m
 
       - name: List services
         run: make ls
@@ -123,7 +123,3 @@ jobs:
       - name: LEGA DOA
         if: ${{ failure() }}
         run: docker service logs LEGA_doa
-
-      - name: ls -la
-        if: ${{ failure() }}
-        run: sudo ls -la /tmp/vault
