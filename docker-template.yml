@@ -325,6 +325,7 @@ services:
         target: /etc/ega/crypt4gh/key.pass
     volumes:
       - /tmp/vault:/ega/archive
+    user: "65534:65534"
 
 secrets:
   rootCA.pem:
