@@ -25,7 +25,7 @@ Run:
 ```
 
 **IMPORTANT**
-CEGA-related env-vars should be set manually, e.g. `CEGA_USERNAME`, `CEGA_PASSWORD`, `BROKER_HOST`, `BROKER_PORT`, `BROKER_USERNAME`, `BROKER_PASSWORD`, `CEGA_MQ_CONNECTION`, `BROKER_VALIDATE`, `BROKER_VHOST`, and `EXCHANGE`.
+CEGA-related env-vars should be set manually, e.g. `CEGA_USERNAME`, `CEGA_PASSWORD`, `BROKER_HOST`, `BROKER_PORT`, `BROKER_USERNAME`, `BROKER_PASSWORD`, `CEGA_MQ_CONNECTION`, `BROKER_VALIDATE`, `BROKER_VHOST`, and `EXCHANGE`(required by proxy and interceptor micro services).
 
 Clean:
 ```bash
