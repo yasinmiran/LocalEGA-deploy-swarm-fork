@@ -3,6 +3,12 @@
 
 Docker Swarm deployment of LocalEGA. Please, refer to the project documentation for getting more comprehensive information: https://neic-sda.readthedocs.io/
 
+## Purpose
+
+The `docker-template.yml` file can be used in two ways:
+1. Deploy LocalEGA locally as containers which can be used used for CI/CD testing in Github (the CEGA BROKER service is not included).
+2. One can trim it down to a Public stack or a Private stack depending on what needs to be deployed.
+
 ## Development
 
 ### Pre-requisites
@@ -13,9 +19,18 @@ Docker Swarm deployment of LocalEGA. Please, refer to the project documentation 
 
 ### How-to
 
-`make bootstrap deploy` (CEGA-related env-vars should be set manually, e.g. `CEGA_CONNECTION`)
+Run:
+```bash
+> make bootstrap deploy
+```
 
-Cleaning up: `make rm purge`.
+**IMPORTANT**
+CEGA-related env-vars should be set manually, e.g. `CEGA_USERNAME`, `CEGA_PASSWORD`, `BROKER_HOST`, `BROKER_PORT`, `BROKER_USERNAME`, `BROKER_PASSWORD`, `CEGA_MQ_CONNECTION`, `BROKER_VALIDATE`, `BROKER_VHOST`, and `EXCHANGE`.
+
+Clean:
+```bash
+> make rm clean
+```
 
 ## Production
 
