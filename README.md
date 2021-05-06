@@ -21,15 +21,18 @@ The `docker-template.yml` file can be used in two ways:
 
 CEGA-related env-vars should be included manually in `Makefile` before running the makefile. The variables are:
 
-`CEGA_USERNAME`, 
-`CEGA_PASSWORD`,
-`BROKER_HOST`, 
-`BROKER_PORT`,
-`BROKER_USERNAME`,
-`BROKER_PASSWORD`,
-`CEGA_MQ_CONNECTION`, 
-`BROKER_VALIDATE`, 
-`BROKER_VHOST`, 
+```
+export CEGA_USERNAME= 
+export CEGA_PASSWORD=
+export BROKER_HOST= 
+export BROKER_PORT=
+export BROKER_USERNAME=
+export BROKER_PASSWORD=
+export CEGA_MQ_CONNECTION= 
+export BROKER_VALIDATE= 
+export BROKER_VHOST= 
+export EXCHANGE=
+```
 `EXCHANGE`(required by proxy and interceptor micro services).
 
 ### How-to
