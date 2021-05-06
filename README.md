@@ -6,7 +6,7 @@ Docker Swarm deployment of LocalEGA. Please, refer to the project documentation 
 ## Purpose
 
 The `docker-template.yml` file can be used in two ways:
-1. Deploy LocalEGA locally as containers which can be used used for CI/CD testing in Github (the CEGA BROKER service is not included).
+1. Deploy LocalEGA locally as containers which can be used for CI/CD testing in Github (the CEGA BROKER service is not included).
 2. One can trim it down to a Public stack or a Private stack depending on what needs to be deployed.
 
 ## Development
@@ -33,7 +33,7 @@ export BROKER_VALIDATE=
 export BROKER_VHOST= 
 export EXCHANGE=
 ```
-`EXCHANGE`(required by proxy and interceptor micro services).
+all these variables are required by proxy and interceptor micro services.
 
 ### How-to
 
