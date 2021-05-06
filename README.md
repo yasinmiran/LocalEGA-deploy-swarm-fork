@@ -18,7 +18,19 @@ The `docker-template.yml` file can be used in two ways:
 - `j2cli` (https://github.com/kolypto/j2cli)
 
 **IMPORTANT**
-CEGA-related env-vars should be included manually in `Makefile` before running the makefile. The variables are `CEGA_USERNAME`, `CEGA_PASSWORD`, `BROKER_HOST`, `BROKER_PORT`, `BROKER_USERNAME`, `BROKER_PASSWORD`, `CEGA_MQ_CONNECTION`, `BROKER_VALIDATE`, `BROKER_VHOST`, and `EXCHANGE`(required by proxy and interceptor micro services).
+
+CEGA-related env-vars should be included manually in `Makefile` before running the makefile. The variables are:
+
+`CEGA_USERNAME`, 
+`CEGA_PASSWORD`,
+`BROKER_HOST`, 
+`BROKER_PORT`,
+`BROKER_USERNAME`,
+`BROKER_PASSWORD`,
+`CEGA_MQ_CONNECTION`, 
+`BROKER_VALIDATE`, 
+`BROKER_VHOST`, 
+`EXCHANGE`(required by proxy and interceptor micro services).
 
 ### How-to
 
