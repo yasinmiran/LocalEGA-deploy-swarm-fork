@@ -75,7 +75,7 @@ jobs:
       - name: Sleep Action
         uses: juliangruber/sleep-action@v1.0.1
         with:
-          time: 2m
+          time: ${{ secrets.SLEEP }}
 
       - name: List services
         run: make ls
