@@ -161,7 +161,7 @@ services:
 
   # Private stack
   ingest:
-    image: neicnordic/sda-pipeline:latest
+    image: ghcr.io/neicnordic/sda-pipeline:experimental-add-tls-skip-verify
     deploy:
       restart_policy:
         condition: on-failure
@@ -202,7 +202,7 @@ services:
     command: "sda-ingest"
 
   verify:
-    image: neicnordic/sda-pipeline:latest
+    image: ghcr.io/neicnordic/sda-pipeline:experimental-add-tls-skip-verify
     deploy:
       restart_policy:
         condition: on-failure
@@ -240,7 +240,7 @@ services:
     command: "sda-verify"
 
   finalize:
-    image: neicnordic/sda-pipeline:latest
+    image: ghcr.io/neicnordic/sda-pipeline:experimental-add-tls-skip-verify
     deploy:
       restart_policy:
         condition: on-failure
@@ -269,7 +269,7 @@ services:
     command: "sda-finalize"
 
   mapper:
-    image: neicnordic/sda-pipeline:latest
+    image: ghcr.io/neicnordic/sda-pipeline:experimental-add-tls-skip-verify
     deploy:
       restart_policy:
         condition: on-failure
