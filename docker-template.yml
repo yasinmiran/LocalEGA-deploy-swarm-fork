@@ -61,7 +61,7 @@ services:
       retries: 3
 
   mq:
-    image: uiobmi/localega-broker-private:latest
+    image: ghcr.io/uio-bmi/localega-broker-private:latest
     ports:
       - 5671:5671
       - 15671:15671
@@ -71,7 +71,7 @@ services:
         delay: 5s
         window: 120s
     environment:
-      - VIRTUAL_HOST=test
+      - VIRTUAL_HOST={{PRIVATE_BROKER_VHOST}}
       - SSL_VERIFY=verify_peer
       - SSL_FAIL_IF_NO_PEER_CERT=false
       - SSL_DEPTH=2
