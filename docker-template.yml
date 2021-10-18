@@ -130,7 +130,7 @@ services:
         target: /etc/ega/jwt/visa.pem
 
   interceptor:
-    image: uiobmi/mq-interceptor:latest
+    image: ghcr.io/uio-bmi/mq-interceptor:latest
     deploy:
       restart_policy:
         condition: on-failure
