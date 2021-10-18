@@ -34,6 +34,7 @@ jobs:
       BROKER_VHOST: ${{ secrets.BROKER_VHOST }}
       BROKER_VALIDATE: ${{ secrets.BROKER_VALIDATE }}
       EXCHANGE: ${{ secrets.EXCHANGE }}
+      CEGA_AUTH_URL: ${{ secrets.CEGA_AUTH_URL }}
 
     steps:
       - uses: actions/checkout@v2
