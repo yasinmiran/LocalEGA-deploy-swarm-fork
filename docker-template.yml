@@ -92,7 +92,7 @@ services:
 
   # Public stack
   proxy:
-    image: uiobmi/localega-tsd-proxy:latest
+    image: ghcr.io/uio-bmi/localega-tsd-proxy:latest
     ports:
       - 443:8080
     deploy:
@@ -113,6 +113,7 @@ services:
       - BROKER_VHOST={{BROKER_VHOST}}
       - BROKER_VALIDATE={{BROKER_VALIDATE}}
       - EXCHANGE={{EXCHANGE}}
+      - CEGA_AUTH_URL={{CEGA_AUTH_URL}}
       - CEGA_USERNAME={{CEGA_USERNAME}}
       - CEGA_PASSWORD={{CEGA_PASSWORD}}
       - TSD_HOST={{TSD_HOST}}
