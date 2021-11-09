@@ -116,7 +116,7 @@ public class IngestionTest {
         String uploadURL = String.format("https://localhost/stream/%s?md5=%s", encFile.getName(), md5Hex);
         JsonNode jsonResponse = Unirest
                 .patch(uploadURL)
-                .basicAuth("dummy", "dummy")
+                .basicAuth("{{EGA_BOX_USERNAME}}", "{{EGA_BOX_PASSWORD}}")
                 .header("Proxy-Authorization", "Bearer " + token)
                 .body(FileUtils.readFileToByteArray(encFile))
                 .asJson()
@@ -130,7 +130,7 @@ public class IngestionTest {
                 FileUtils.sizeOf(encFile));
         jsonResponse = Unirest
                 .patch(finalizeURL)
-                .basicAuth("dummy", "dummy")
+                .basicAuth("{{EGA_BOX_USERNAME}}", "{{EGA_BOX_PASSWORD}}")
                 .header("Proxy-Authorization", "Bearer " + token)
                 .asJson()
                 .getBody();
@@ -152,7 +152,7 @@ public class IngestionTest {
                 .correlationId(UUID.randomUUID().toString())
                 .build();
 
-        String message = String.format("{\"type\":\"ingest\",\"user\":\"%s\",\"filepath\":\"/p11-dummy@elixir-europe.org/files/%s\"}", "dummy", encFile.getName());
+        String message = String.format("{\"type\":\"ingest\",\"user\":\"%s\",\"filepath\":\"/p11-dummy@elixir-europe.org/files/%s\"}", "{{EGA_BOX_USERNAME}}", encFile.getName());
         log.info(message);
         channel.basicPublish("localega.v1",
                 "files",
