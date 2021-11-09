@@ -35,6 +35,8 @@ jobs:
       BROKER_VALIDATE: ${{ secrets.BROKER_VALIDATE }}
       EXCHANGE: ${{ secrets.EXCHANGE }}
       CEGA_AUTH_URL: ${{ secrets.CEGA_AUTH_URL }}
+      EGA_BOX_USERNAME: ${{ secrets.EGA_BOX_USERNAME }}
+      EGA_BOX_PASSWORD: ${{ secrets.EGA_BOX_PASSWORD }}
 
     steps:
       - uses: actions/checkout@v2
