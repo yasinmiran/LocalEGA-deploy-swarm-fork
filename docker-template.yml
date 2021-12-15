@@ -193,6 +193,8 @@ services:
       - DB_PASSWORD={{DB_LEGA_IN_PASSWORD}}
       - DB_DATABASE=lega
       - DB_SSLMODE=require
+      - DB_CLIENTCERT=/etc/ega/client.cert
+      - DB_CLIENTKEY=/etc/ega/client-key.cert
       - INBOX_TYPE=posix
       - INBOX_LOCATION=/ega/inbox
       - LOG_LEVEL=debug
@@ -242,6 +244,8 @@ services:
       - DB_PASSWORD={{DB_LEGA_IN_PASSWORD}}
       - DB_DATABASE=lega
       - DB_SSLMODE=require
+      - DB_CLIENTCERT=/etc/ega/client.cert
+      - DB_CLIENTKEY=/etc/ega/client-key.cert
       - LOG_LEVEL=debug
     secrets:
       - source: rootCA.pem
@@ -284,6 +288,8 @@ services:
       - DB_PASSWORD={{DB_LEGA_IN_PASSWORD}}
       - DB_DATABASE=lega
       - DB_SSLMODE=require
+      - DB_CLIENTCERT=/etc/ega/client.cert
+      - DB_CLIENTKEY=/etc/ega/client-key.cert
       - LOG_LEVEL=debug
     command: "sda-finalize"
     secrets:
@@ -321,6 +327,8 @@ services:
       - DB_PASSWORD={{DB_LEGA_OUT_PASSWORD}}
       - DB_DATABASE=lega
       - DB_SSLMODE=require
+      - DB_CLIENTCERT=/etc/ega/client.cert
+      - DB_CLIENTKEY=/etc/ega/client-key.cert
       - LOG_LEVEL=debug
     command: "sda-mapper"
     secrets:
