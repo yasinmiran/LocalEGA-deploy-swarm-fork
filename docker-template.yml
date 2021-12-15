@@ -182,7 +182,8 @@ services:
       - BROKER_ROUTINGERROR=error
       - BROKER_SSL=true
       - BROKER_VERIFYPEER=false
-      - BROKER_INSECURESKIPVERIFY=true
+      - BROKER_INSECURESKIPVERIFY=false
+      - BROKER_CACERT = /etc/ega/CA.cert
       - C4GH_PASSPHRASE={{KEY_PASSWORD}}
       - C4GH_FILEPATH=/etc/ega/ega.sec
       - DB_HOST={{DB_HOST}}
@@ -195,6 +196,8 @@ services:
       - INBOX_LOCATION=/ega/inbox
       - LOG_LEVEL=debug
     secrets:
+      - source: rootCA.pem
+        target: /etc/ega/CA.cert
       - source: ega.sec.pem
         target: /etc/ega/ega.sec
     volumes:
@@ -223,7 +226,8 @@ services:
       - BROKER_ROUTINGERROR=error
       - BROKER_SSL=true
       - BROKER_VERIFYPEER=false
-      - BROKER_INSECURESKIPVERIFY=true
+      - BROKER_INSECURESKIPVERIFY=false
+      - BROKER_CACERT = /etc/ega/CA.cert
       - C4GH_PASSPHRASE={{KEY_PASSWORD}}
       - C4GH_FILEPATH=/etc/ega/ega.sec
       - DB_HOST={{DB_HOST}}
@@ -234,6 +238,8 @@ services:
       - DB_SSLMODE=require
       - LOG_LEVEL=debug
     secrets:
+      - source: rootCA.pem
+        target: /etc/ega/CA.cert
       - source: ega.sec.pem
         target: /etc/ega/ega.sec
     volumes:
@@ -259,7 +265,8 @@ services:
       - BROKER_ROUTINGERROR=error
       - BROKER_SSL=true
       - BROKER_VERIFYPEER=false
-      - BROKER_INSECURESKIPVERIFY=true
+      - BROKER_INSECURESKIPVERIFY=false
+      - BROKER_CACERT = /etc/ega/CA.cert
       - DB_HOST={{DB_HOST}}
       - DB_PORT=5432
       - DB_USER={{DB_LEGA_IN_USER}}
@@ -268,6 +275,9 @@ services:
       - DB_SSLMODE=require
       - LOG_LEVEL=debug
     command: "sda-finalize"
+    secrets:
+      - source: rootCA.pem
+        target: /etc/ega/CA.cert
 
   mapper:
     image: ghcr.io/neicnordic/sda-pipeline:experimental-add-tls-skip-verify
@@ -287,7 +297,8 @@ services:
       - BROKER_ROUTINGERROR=error
       - BROKER_SSL=true
       - BROKER_VERIFYPEER=false
-      - BROKER_INSECURESKIPVERIFY=true
+      - BROKER_INSECURESKIPVERIFY=false
+      - BROKER_CACERT = /etc/ega/CA.cert
       - DB_HOST={{DB_HOST}}
       - DB_PORT=5432
       - DB_USER={{DB_LEGA_OUT_USER}}
@@ -296,6 +307,9 @@ services:
       - DB_SSLMODE=require
       - LOG_LEVEL=debug
     command: "sda-mapper"
+    secrets:
+      - source: rootCA.pem
+        target: /etc/ega/CA.cert
 
   doa:
     image: neicnordic/sda-doa:release-v1.6.0
