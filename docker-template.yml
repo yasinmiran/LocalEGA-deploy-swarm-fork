@@ -21,7 +21,7 @@ services:
       - /tmp/tsd:/tsd/p11/data/durable/apps/ega/
 
   db:
-    image: ghcr.io/neicnordic/sda-db:v1.3.1
+    image: ghcr.io/neicnordic/sda-db:latest
     ports:
       - 5432:5432
     deploy:
@@ -33,6 +33,7 @@ services:
       - DB_LEGA_IN_PASSWORD={{DB_LEGA_IN_PASSWORD}}
       - DB_LEGA_OUT_PASSWORD={{DB_LEGA_OUT_PASSWORD}}
       - PGDATA=/ega/data
+      - PG_VERIFY_PEER = verify-ca
       - PG_SERVER_CERT=/etc/ega/pg.cert
       - PG_SERVER_KEY=/etc/ega/pg.key
       - PG_CA=/etc/ega/CA.cert
