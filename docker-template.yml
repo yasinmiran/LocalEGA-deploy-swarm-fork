@@ -203,8 +203,14 @@ services:
         target: /etc/ega/CA.cert
       - source: client.pem
         target: /etc/ega/client.cert
+        uid: '70'
+        gid: '70'
+        mode: 0600
       - source: client-key.pem
         target: /etc/ega/client-key.cert
+        uid: '70'
+        gid: '70'
+        mode: 0600
       - source: ega.sec.pem
         target: /etc/ega/ega.sec
     volumes:
@@ -252,8 +258,14 @@ services:
         target: /etc/ega/CA.cert
       - source: client.pem
         target: /etc/ega/client.cert
+        uid: '70'
+        gid: '70'
+        mode: 0600
       - source: client-key.pem
         target: /etc/ega/client-key.cert
+        uid: '70'
+        gid: '70'
+        mode: 0600
       - source: ega.sec.pem
         target: /etc/ega/ega.sec
     volumes:
@@ -297,8 +309,14 @@ services:
         target: /etc/ega/CA.cert
       - source: client.pem
         target: /etc/ega/client.cert
+        uid: '70'
+        gid: '70'
+        mode: 0600
       - source: client-key.pem
         target: /etc/ega/client-key.cert
+        uid: '70'
+        gid: '70'
+        mode: 0600
 
   mapper:
     image: ghcr.io/neicnordic/sda-pipeline:latest
@@ -336,8 +354,14 @@ services:
         target: /etc/ega/CA.cert
       - source: client.pem
         target: /etc/ega/client.cert
+        uid: '70'
+        gid: '70'
+        mode: 0600
       - source: client-key.pem
         target: /etc/ega/client-key.cert
+        uid: '70'
+        gid: '70'
+        mode: 0600
 
   doa:
     image: neicnordic/sda-doa:release-v1.6.0
