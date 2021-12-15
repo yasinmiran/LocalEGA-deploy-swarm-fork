@@ -33,7 +33,7 @@ services:
       - DB_LEGA_IN_PASSWORD={{DB_LEGA_IN_PASSWORD}}
       - DB_LEGA_OUT_PASSWORD={{DB_LEGA_OUT_PASSWORD}}
       - PGDATA=/ega/data
-      - PG_VERIFY_PEER = verify-ca
+      - PG_VERIFY_PEER = verify-none
       - PG_SERVER_CERT=/etc/ega/pg.cert
       - PG_SERVER_KEY=/etc/ega/pg.key
       - PG_CA=/etc/ega/CA.cert
