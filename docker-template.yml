@@ -33,7 +33,7 @@ services:
       - DB_LEGA_IN_PASSWORD={{DB_LEGA_IN_PASSWORD}}
       - DB_LEGA_OUT_PASSWORD={{DB_LEGA_OUT_PASSWORD}}
       - PGDATA=/ega/data
-      - PG_VERIFY_PEER = verify-none
+      - PG_VERIFY_PEER = verify-peer
       - PG_SERVER_CERT=/etc/ega/pg.cert
       - PG_SERVER_KEY=/etc/ega/pg.key
       - PG_CA=/etc/ega/CA.cert
@@ -181,7 +181,7 @@ services:
       - BROKER_ROUTINGKEY=archived
       - BROKER_ROUTINGERROR=error
       - BROKER_SSL=true
-      - BROKER_VERIFYPEER=false
+      - BROKER_VERIFYPEER=true
       - BROKER_INSECURESKIPVERIFY=false
       - BROKER_CACERT = /etc/ega/CA.cert
       - C4GH_PASSPHRASE={{KEY_PASSWORD}}
@@ -198,6 +198,10 @@ services:
     secrets:
       - source: rootCA.pem
         target: /etc/ega/CA.cert
+      - source: client.pem
+        target: /etc/ega/client.cert
+      - source: client-key.pem
+        target: /etc/ega/client-key.cert
       - source: ega.sec.pem
         target: /etc/ega/ega.sec
     volumes:
@@ -225,7 +229,7 @@ services:
       - BROKER_ROUTINGKEY=verified
       - BROKER_ROUTINGERROR=error
       - BROKER_SSL=true
-      - BROKER_VERIFYPEER=false
+      - BROKER_VERIFYPEER=true
       - BROKER_INSECURESKIPVERIFY=false
       - BROKER_CACERT = /etc/ega/CA.cert
       - C4GH_PASSPHRASE={{KEY_PASSWORD}}
@@ -240,6 +244,10 @@ services:
     secrets:
       - source: rootCA.pem
         target: /etc/ega/CA.cert
+      - source: client.pem
+        target: /etc/ega/client.cert
+      - source: client-key.pem
+        target: /etc/ega/client-key.cert
       - source: ega.sec.pem
         target: /etc/ega/ega.sec
     volumes:
@@ -264,7 +272,7 @@ services:
       - BROKER_ROUTINGKEY=completed
       - BROKER_ROUTINGERROR=error
       - BROKER_SSL=true
-      - BROKER_VERIFYPEER=false
+      - BROKER_VERIFYPEER=true
       - BROKER_INSECURESKIPVERIFY=false
       - BROKER_CACERT = /etc/ega/CA.cert
       - DB_HOST={{DB_HOST}}
@@ -278,6 +286,10 @@ services:
     secrets:
       - source: rootCA.pem
         target: /etc/ega/CA.cert
+      - source: client.pem
+        target: /etc/ega/client.cert
+      - source: client-key.pem
+        target: /etc/ega/client-key.cert
 
   mapper:
     image: ghcr.io/neicnordic/sda-pipeline:experimental-add-tls-skip-verify
@@ -296,7 +308,7 @@ services:
       - BROKER_EXCHANGE=sda
       - BROKER_ROUTINGERROR=error
       - BROKER_SSL=true
-      - BROKER_VERIFYPEER=false
+      - BROKER_VERIFYPEER=true
       - BROKER_INSECURESKIPVERIFY=false
       - BROKER_CACERT = /etc/ega/CA.cert
       - DB_HOST={{DB_HOST}}
@@ -310,6 +322,10 @@ services:
     secrets:
       - source: rootCA.pem
         target: /etc/ega/CA.cert
+      - source: client.pem
+        target: /etc/ega/client.cert
+      - source: client-key.pem
+        target: /etc/ega/client-key.cert
 
   doa:
     image: neicnordic/sda-doa:release-v1.6.0
