@@ -208,6 +208,8 @@ services:
         mode: 0600
       - source: client-key.pem
         target: /etc/ega/client-key.cert
+        uid: '65534'
+        gid: '65534'
         mode: 0600
       - source: ega.sec.pem
         target: /etc/ega/ega.sec
