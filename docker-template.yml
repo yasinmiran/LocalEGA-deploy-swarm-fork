@@ -162,7 +162,7 @@ services:
 
   # Private stack
   ingest:
-    image: ghcr.io/neicnordic/sda-pipeline:experimental-add-tls-skip-verify
+    image: ghcr.io/neicnordic/sda-pipeline:latest
     deploy:
       restart_policy:
         condition: on-failure
@@ -212,7 +212,7 @@ services:
     command: "sda-ingest"
 
   verify:
-    image: ghcr.io/neicnordic/sda-pipeline:experimental-add-tls-skip-verify
+    image: ghcr.io/neicnordic/sda-pipeline:latest
     deploy:
       restart_policy:
         condition: on-failure
@@ -259,7 +259,7 @@ services:
     command: "sda-verify"
 
   finalize:
-    image: ghcr.io/neicnordic/sda-pipeline:experimental-add-tls-skip-verify
+    image: ghcr.io/neicnordic/sda-pipeline:latest
     deploy:
       restart_policy:
         condition: on-failure
@@ -298,7 +298,7 @@ services:
         target: /etc/ega/client-key.cert
 
   mapper:
-    image: ghcr.io/neicnordic/sda-pipeline:experimental-add-tls-skip-verify
+    image: ghcr.io/neicnordic/sda-pipeline:latest
     deploy:
       restart_policy:
         condition: on-failure
