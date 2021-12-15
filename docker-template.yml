@@ -33,7 +33,7 @@ services:
       - DB_LEGA_IN_PASSWORD={{DB_LEGA_IN_PASSWORD}}
       - DB_LEGA_OUT_PASSWORD={{DB_LEGA_OUT_PASSWORD}}
       - PGDATA=/ega/data
-      - PG_VERIFY_PEER = verify-peer
+      - PG_VERIFY_PEER = verify-ca
       - PG_SERVER_CERT=/etc/ega/pg.cert
       - PG_SERVER_KEY=/etc/ega/pg.key
       - PG_CA=/etc/ega/CA.cert
@@ -184,6 +184,8 @@ services:
       - BROKER_VERIFYPEER=true
       - BROKER_INSECURESKIPVERIFY=false
       - BROKER_CACERT = /etc/ega/CA.cert
+      - BROKER_CLIENTCERT = /etc/ega/client.cert
+      - BROKER_CLIENTKEY = /etc/ega/client-key.cert
       - C4GH_PASSPHRASE={{KEY_PASSWORD}}
       - C4GH_FILEPATH=/etc/ega/ega.sec
       - DB_HOST={{DB_HOST}}
@@ -232,6 +234,8 @@ services:
       - BROKER_VERIFYPEER=true
       - BROKER_INSECURESKIPVERIFY=false
       - BROKER_CACERT = /etc/ega/CA.cert
+      - BROKER_CLIENTCERT = /etc/ega/client.cert
+      - BROKER_CLIENTKEY = /etc/ega/client-key.cert
       - C4GH_PASSPHRASE={{KEY_PASSWORD}}
       - C4GH_FILEPATH=/etc/ega/ega.sec
       - DB_HOST={{DB_HOST}}
@@ -275,6 +279,8 @@ services:
       - BROKER_VERIFYPEER=true
       - BROKER_INSECURESKIPVERIFY=false
       - BROKER_CACERT = /etc/ega/CA.cert
+      - BROKER_CLIENTCERT = /etc/ega/client.cert
+      - BROKER_CLIENTKEY = /etc/ega/client-key.cert
       - DB_HOST={{DB_HOST}}
       - DB_PORT=5432
       - DB_USER={{DB_LEGA_IN_USER}}
@@ -311,6 +317,8 @@ services:
       - BROKER_VERIFYPEER=true
       - BROKER_INSECURESKIPVERIFY=false
       - BROKER_CACERT = /etc/ega/CA.cert
+      - BROKER_CLIENTCERT = /etc/ega/client.cert
+      - BROKER_CLIENTKEY = /etc/ega/client-key.cert
       - DB_HOST={{DB_HOST}}
       - DB_PORT=5432
       - DB_USER={{DB_LEGA_OUT_USER}}
