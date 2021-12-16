@@ -381,8 +381,12 @@ services:
       - POSTGRES_PASSWORD={{DB_LEGA_OUT_PASSWORD}}
       - OUTBOX_ENABLED=false
     secrets:
+      - source: rootCA.pem
+        target: /etc/ega/ssl/CA.cert
       - source: client.pem
         target: /etc/ega/ssl/client.cert
+      - source: client-key.der
+        target: /etc/ega/ssl/client.key
       - source: jwt.pub.pem
         target: /etc/ega/jwt/passport.pem
       - source: jwt.pub.pem
