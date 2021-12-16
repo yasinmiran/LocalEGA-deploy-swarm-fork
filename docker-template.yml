@@ -21,7 +21,7 @@ services:
       - /tmp/tsd:/tsd/p11/data/durable/apps/ega/
 
   db:
-    image: ghcr.io/neicnordic/sda-db:v1.3.1
+    image: ghcr.io/neicnordic/sda-db:latest
     ports:
       - 5432:5432
     deploy:
@@ -33,6 +33,7 @@ services:
       - DB_LEGA_IN_PASSWORD={{DB_LEGA_IN_PASSWORD}}
       - DB_LEGA_OUT_PASSWORD={{DB_LEGA_OUT_PASSWORD}}
       - PGDATA=/ega/data
+      - PG_VERIFY_PEER=verify-ca
       - PG_SERVER_CERT=/etc/ega/pg.cert
       - PG_SERVER_KEY=/etc/ega/pg.key
       - PG_CA=/etc/ega/CA.cert
@@ -161,7 +162,7 @@ services:
 
   # Private stack
   ingest:
-    image: ghcr.io/neicnordic/sda-pipeline:experimental-add-tls-skip-verify
+    image: ghcr.io/neicnordic/sda-pipeline:latest
     deploy:
       restart_policy:
         condition: on-failure
@@ -180,8 +181,10 @@ services:
       - BROKER_ROUTINGKEY=archived
       - BROKER_ROUTINGERROR=error
       - BROKER_SSL=true
-      - BROKER_VERIFYPEER=false
-      - BROKER_INSECURESKIPVERIFY=true
+      - BROKER_VERIFYPEER=true
+      - BROKER_CACERT=/etc/ega/CA.cert
+      - BROKER_CLIENTCERT=/etc/ega/client.cert
+      - BROKER_CLIENTKEY=/etc/ega/client-key.cert
       - C4GH_PASSPHRASE={{KEY_PASSWORD}}
       - C4GH_FILEPATH=/etc/ega/ega.sec
       - DB_HOST={{DB_HOST}}
@@ -190,10 +193,24 @@ services:
       - DB_PASSWORD={{DB_LEGA_IN_PASSWORD}}
       - DB_DATABASE=lega
       - DB_SSLMODE=require
+      - DB_CLIENTCERT=/etc/ega/client.cert
+      - DB_CLIENTKEY=/etc/ega/client-key.cert
       - INBOX_TYPE=posix
       - INBOX_LOCATION=/ega/inbox
       - LOG_LEVEL=debug
     secrets:
+      - source: rootCA.pem
+        target: /etc/ega/CA.cert
+      - source: client.pem
+        target: /etc/ega/client.cert
+        uid: '65534'
+        gid: '65534'
+        mode: 0600
+      - source: client-key.pem
+        target: /etc/ega/client-key.cert
+        uid: '65534'
+        gid: '65534'
+        mode: 0600
       - source: ega.sec.pem
         target: /etc/ega/ega.sec
     volumes:
@@ -202,7 +219,7 @@ services:
     command: "sda-ingest"
 
   verify:
-    image: ghcr.io/neicnordic/sda-pipeline:experimental-add-tls-skip-verify
+    image: ghcr.io/neicnordic/sda-pipeline:latest
     deploy:
       restart_policy:
         condition: on-failure
@@ -221,8 +238,10 @@ services:
       - BROKER_ROUTINGKEY=verified
       - BROKER_ROUTINGERROR=error
       - BROKER_SSL=true
-      - BROKER_VERIFYPEER=false
-      - BROKER_INSECURESKIPVERIFY=true
+      - BROKER_VERIFYPEER=true
+      - BROKER_CACERT=/etc/ega/CA.cert
+      - BROKER_CLIENTCERT=/etc/ega/client.cert
+      - BROKER_CLIENTKEY=/etc/ega/client-key.cert
       - C4GH_PASSPHRASE={{KEY_PASSWORD}}
       - C4GH_FILEPATH=/etc/ega/ega.sec
       - DB_HOST={{DB_HOST}}
@@ -231,8 +250,22 @@ services:
       - DB_PASSWORD={{DB_LEGA_IN_PASSWORD}}
       - DB_DATABASE=lega
       - DB_SSLMODE=require
+      - DB_CLIENTCERT=/etc/ega/client.cert
+      - DB_CLIENTKEY=/etc/ega/client-key.cert
       - LOG_LEVEL=debug
     secrets:
+      - source: rootCA.pem
+        target: /etc/ega/CA.cert
+      - source: client.pem
+        target: /etc/ega/client.cert
+        uid: '65534'
+        gid: '65534'
+        mode: 0600
+      - source: client-key.pem
+        target: /etc/ega/client-key.cert
+        uid: '65534'
+        gid: '65534'
+        mode: 0600
       - source: ega.sec.pem
         target: /etc/ega/ega.sec
     volumes:
@@ -240,7 +273,7 @@ services:
     command: "sda-verify"
 
   finalize:
-    image: ghcr.io/neicnordic/sda-pipeline:experimental-add-tls-skip-verify
+    image: ghcr.io/neicnordic/sda-pipeline:latest
     deploy:
       restart_policy:
         condition: on-failure
@@ -257,19 +290,36 @@ services:
       - BROKER_ROUTINGKEY=completed
       - BROKER_ROUTINGERROR=error
       - BROKER_SSL=true
-      - BROKER_VERIFYPEER=false
-      - BROKER_INSECURESKIPVERIFY=true
+      - BROKER_VERIFYPEER=true
+      - BROKER_CACERT=/etc/ega/CA.cert
+      - BROKER_CLIENTCERT=/etc/ega/client.cert
+      - BROKER_CLIENTKEY=/etc/ega/client-key.cert
       - DB_HOST={{DB_HOST}}
       - DB_PORT=5432
       - DB_USER={{DB_LEGA_IN_USER}}
       - DB_PASSWORD={{DB_LEGA_IN_PASSWORD}}
       - DB_DATABASE=lega
       - DB_SSLMODE=require
+      - DB_CLIENTCERT=/etc/ega/client.cert
+      - DB_CLIENTKEY=/etc/ega/client-key.cert
       - LOG_LEVEL=debug
     command: "sda-finalize"
+    secrets:
+      - source: rootCA.pem
+        target: /etc/ega/CA.cert
+      - source: client.pem
+        target: /etc/ega/client.cert
+        uid: '65534'
+        gid: '65534'
+        mode: 0600
+      - source: client-key.pem
+        target: /etc/ega/client-key.cert
+        uid: '65534'
+        gid: '65534'
+        mode: 0600
 
   mapper:
-    image: ghcr.io/neicnordic/sda-pipeline:experimental-add-tls-skip-verify
+    image: ghcr.io/neicnordic/sda-pipeline:latest
     deploy:
       restart_policy:
         condition: on-failure
@@ -285,16 +335,33 @@ services:
       - BROKER_EXCHANGE=sda
       - BROKER_ROUTINGERROR=error
       - BROKER_SSL=true
-      - BROKER_VERIFYPEER=false
-      - BROKER_INSECURESKIPVERIFY=true
+      - BROKER_VERIFYPEER=true
+      - BROKER_CACERT=/etc/ega/CA.cert
+      - BROKER_CLIENTCERT=/etc/ega/client.cert
+      - BROKER_CLIENTKEY=/etc/ega/client-key.cert
       - DB_HOST={{DB_HOST}}
       - DB_PORT=5432
       - DB_USER={{DB_LEGA_OUT_USER}}
       - DB_PASSWORD={{DB_LEGA_OUT_PASSWORD}}
       - DB_DATABASE=lega
       - DB_SSLMODE=require
+      - DB_CLIENTCERT=/etc/ega/client.cert
+      - DB_CLIENTKEY=/etc/ega/client-key.cert
       - LOG_LEVEL=debug
     command: "sda-mapper"
+    secrets:
+      - source: rootCA.pem
+        target: /etc/ega/CA.cert
+      - source: client.pem
+        target: /etc/ega/client.cert
+        uid: '65534'
+        gid: '65534'
+        mode: 0600
+      - source: client-key.pem
+        target: /etc/ega/client-key.cert
+        uid: '65534'
+        gid: '65534'
+        mode: 0600
 
   doa:
     image: neicnordic/sda-doa:release-v1.6.0
@@ -314,8 +381,12 @@ services:
       - POSTGRES_PASSWORD={{DB_LEGA_OUT_PASSWORD}}
       - OUTBOX_ENABLED=false
     secrets:
+      - source: rootCA.pem
+        target: /etc/ega/ssl/CA.cert
       - source: client.pem
         target: /etc/ega/ssl/client.cert
+      - source: client-key.der
+        target: /etc/ega/ssl/client.key
       - source: jwt.pub.pem
         target: /etc/ega/jwt/passport.pem
       - source: jwt.pub.pem
