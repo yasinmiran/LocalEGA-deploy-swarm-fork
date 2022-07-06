@@ -12,6 +12,8 @@ on:
   schedule:
     - cron: "0 0 * * *"
 
+  workflow_dispatch:
+
 jobs:
 
   build:
@@ -32,6 +34,9 @@ jobs:
       BROKER_VHOST: ${{ secrets.BROKER_VHOST }}
       BROKER_VALIDATE: ${{ secrets.BROKER_VALIDATE }}
       EXCHANGE: ${{ secrets.EXCHANGE }}
+      CEGA_AUTH_URL: ${{ secrets.CEGA_AUTH_URL }}
+      EGA_BOX_USERNAME: ${{ secrets.EGA_BOX_USERNAME }}
+      EGA_BOX_PASSWORD: ${{ secrets.EGA_BOX_PASSWORD }}
 
     steps:
       - uses: actions/checkout@v2
@@ -72,7 +77,7 @@ jobs:
       - name: Sleep Action
         uses: juliangruber/sleep-action@v1.0.1
         with:
-          time: 2m
+          time: ${{ secrets.SLEEP }}
 
       - name: List services
         run: make ls
