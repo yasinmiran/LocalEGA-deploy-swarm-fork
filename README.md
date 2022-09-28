@@ -1,7 +1,8 @@
 # LocalEGA-deploy-swarm
 ![Integration tests](https://github.com/neicnordic/LocalEGA-deploy-swarm/workflows/Integration%20tests/badge.svg)
 
-Docker Swarm deployment of LocalEGA. Please, refer to the project documentation for getting more comprehensive information: https://neic-sda.readthedocs.io/
+Docker Swarm deployment of LocalEGA. This is a fork meant for internal testing purposes.
+Please, refer to the project documentation for getting more comprehensive information: https://neic-sda.readthedocs.io/
 
 ## Development
 
