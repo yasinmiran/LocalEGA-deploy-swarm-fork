@@ -2,6 +2,37 @@ SHELL := /bin/bash -O expand_aliases
 
 FILES := localhost+5.pem localhost+5-key.pem localhost+5-client.pem localhost+5-client-key.pem rootCA.pem rootCA.p12 localhost+5.p12 localhost+5-client.p12 localhost+5-client-key.der rootCA-key.pem docker-stack.yml jwt.pub.pem jwt.priv.pem ega.pub.pem ega.sec.pass ega.sec.pem server.pem server-key.pem server.p12 client.pem client-key.pem client-key.der client.p12 init-mappings-db.sh
 
+# Manually entered secrets not available in the repo
+####################################################
+
+# proxy service CEGA NSS
+export CEGA_AUTH_URL=https://nss-test.ega-archive.org/users/
+#export CEGA_USERNAME=<must be filled>
+#export CEGA_PASSWORD=<must be filled
+
+# Test user in Norway1
+export EGA_BOX_USERNAME=ega-box-XXXX
+export EGA_BOX_PASSWORD=<secret-password to be filled>
+
+
+# Prefilled configs from the repo
+#################################
+
+#Interceptor CEGA details (using "mock" rabbitmq image)
+export CEGA_MQ_CONNECTION=amqps://test:test@cegamq:5671/lega?cacertfile=/etc/ega/ssl/CA.cert
+
+# Proxy service CEGA details (using "mock" rabbitmq image)
+export BROKER_HOST=cegamq
+export BROKER_PORT=5671
+export BROKER_USERNAME=test
+export BROKER_PASSWORD=test
+export BROKER_VHOST=lega
+
+export BROKER_VALIDATE=false
+export EXCHANGE=localega.v1
+
+
+
 export CAROOT := $(shell mkcert -CAROOT)
 export ROOT_CERT_PASSWORD=r00t_cert_passw0rd
 export TSD_ROOT_CERT_PASSWORD=r00t_cert_passw0rd
@@ -39,7 +70,7 @@ bootstrap: init $(FILES)
 	@sudo chmod 777 /tmp/tsd /tmp/vault /tmp/db
 
 init:
-	@-docker swarm init
+	@-$(DOCKER) swarm init
 
 mkcert:
 	@mkcert -install

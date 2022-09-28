@@ -94,8 +94,13 @@ services:
   # Public stack
   proxy:
     image: ghcr.io/uio-bmi/localega-tsd-proxy:latest
+    depends_on:
+      - mq
+      - cegamq
+      - postgres
+      - tsd
     ports:
-      - 443:8080
+      - 10443:8080
     deploy:
       restart_policy:
         condition: on-failure
@@ -132,6 +137,10 @@ services:
 
   interceptor:
     image: ghcr.io/uio-bmi/mq-interceptor:latest
+    depends_on:
+      - cegamq
+      - mq
+      - postgres
     deploy:
       restart_policy:
         condition: on-failure
@@ -163,6 +172,9 @@ services:
   # Private stack
   ingest:
     image: ghcr.io/neicnordic/sda-pipeline:latest
+    depends_on:
+      - mq
+      - db
     deploy:
       restart_policy:
         condition: on-failure
@@ -219,7 +231,10 @@ services:
     command: "sda-ingest"
 
   verify:
-    image: ghcr.io/neicnordic/sda-pipeline:latest
+    image: ghcr.io/neicnordic/sda-pipeline:v0.2.5
+    depends_on:
+      - mq
+      - db
     deploy:	
       restart_policy:
         condition: on-failure
@@ -276,6 +291,9 @@ services:
 
   finalize:
     image: ghcr.io/neicnordic/sda-pipeline:latest
+    depends_on:
+      - mq
+      - db    
     deploy:
       restart_policy:
         condition: on-failure
@@ -322,6 +340,9 @@ services:
 
   mapper:
     image: ghcr.io/neicnordic/sda-pipeline:latest
+    depends_on:
+      - mq
+      - db    
     deploy:
       restart_policy:
         condition: on-failure
@@ -367,6 +388,9 @@ services:
 
   doa:
     image: neicnordic/sda-doa:release-v1.6.0
+    depends_on:
+      - mq
+      - db    
     ports:
       - 80:8080
     deploy:
