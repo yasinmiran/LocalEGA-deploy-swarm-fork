@@ -1,4 +1,6 @@
 SHELL := /bin/bash -O expand_aliases
+# sudo docker macro to run docker commands as sudo in Ubuntu systems
+DOCKER := sudo docker
 
 FILES := localhost+5.pem localhost+5-key.pem localhost+5-client.pem localhost+5-client-key.pem rootCA.pem rootCA.p12 localhost+5.p12 localhost+5-client.p12 localhost+5-client-key.der rootCA-key.pem docker-stack.yml jwt.pub.pem jwt.priv.pem ega.pub.pem ega.sec.pass ega.sec.pem server.pem server-key.pem server.p12 client.pem client-key.pem client-key.der client.p12 init-mappings-db.sh
 
@@ -66,7 +68,7 @@ export POSTGRES_CONNECTION=postgres://postgres:p0stgres_passw0rd@postgres:5432/p
 bootstrap: init $(FILES)
 	@chmod 644 $(FILES)
 	@mkdir -p /tmp/tsd /tmp/vault /tmp/db
-	@sudo chown 65534:65534 /tmp/vault
+	@sudo chown 65534:65534 /tmp/vault /tmp/tsd
 	@sudo chmod 777 /tmp/tsd /tmp/vault /tmp/db
 
 init:
@@ -96,19 +98,19 @@ localhost+5-client-key.der: localhost+5-client-key.pem
 
 jwt.priv.pem:
 	@openssl genpkey -algorithm RSA -out jwt.priv.pem -pkeyopt rsa_keygen_bits:4096
-	@docker secret create $@ $@
+	@$(DOCKER) secret create $@ $@
 
 jwt.pub.pem: jwt.priv.pem
 	@openssl rsa -pubout -in jwt.priv.pem -out jwt.pub.pem
-	@docker secret create $@ $@
+	@$(DOCKER) secret create $@ $@
 
 ega.sec.pass:
 	@printf $(KEY_PASSWORD) > ega.sec.pass
-	@docker secret create $@ $@
+	@$(DOCKER) secret create $@ $@
 
 ega.sec.pem:
 	@crypt4gh generate -n ega -p $(KEY_PASSWORD)
-	@docker secret create $@ $@
+	@$(DOCKER) secret create $@ $@
 
 ega.pub.pem: ega.sec.pem
 
@@ -117,44 +119,44 @@ docker-stack.yml:
 
 rootCA.pem: mkcert
 	@cp "$(CAROOT)/rootCA.pem" rootCA.pem
-	@docker secret create $@ $@
+	@$(DOCKER) secret create $@ $@
 
 rootCA-key.pem: mkcert
 	@cp "$(CAROOT)/rootCA-key.pem" rootCA-key.pem
 	@chmod 600 rootCA-key.pem
-	@docker secret create $@ $@
+	@$(DOCKER) secret create $@ $@
 
 rootCA.p12: rootCA.pem rootCA-key.pem
 	@openssl pkcs12 -export -out rootCA.p12 -in rootCA.pem -inkey rootCA-key.pem -passout pass:${ROOT_CERT_PASSWORD}
-	@docker secret create $@ $@
+	@$(DOCKER) secret create $@ $@
 
 server.pem: localhost+5.pem
 	@cp localhost+5.pem server.pem
-	@docker secret create $@ $@
+	@$(DOCKER) secret create $@ $@
 
 server-key.pem: localhost+5-key.pem
 	@cp localhost+5-key.pem server-key.pem
-	@docker secret create $@ $@
+	@$(DOCKER) secret create $@ $@
 
 server.p12: localhost+5.p12
 	@cp localhost+5.p12 server.p12
-	@docker secret create $@ $@
+	@$(DOCKER) secret create $@ $@
 
 client.pem: localhost+5-client.pem
 	@cp localhost+5-client.pem client.pem
-	@docker secret create $@ $@
+	@$(DOCKER) secret create $@ $@
 
 client-key.pem: localhost+5-client-key.pem
 	@cp localhost+5-client-key.pem client-key.pem
-	@docker secret create $@ $@
+	@$(DOCKER) secret create $@ $@
 
 client-key.der: localhost+5-client-key.der
 	@cp localhost+5-client-key.der client-key.der
-	@docker secret create $@ $@
+	@$(DOCKER) secret create $@ $@
 
 client.p12: localhost+5-client.p12
 	@cp localhost+5-client.p12 client.p12
-	@docker secret create $@ $@
+	@$(DOCKER) secret create $@ $@
 
 define mappings
 #!/bin/bash
@@ -175,22 +177,22 @@ export mappings
 
 init-mappings-db.sh:
 	@echo "$$mappings" > init-mappings-db.sh
-	@docker secret create $@ $@
+	@$(DOCKER) secret create $@ $@
 
 deploy: init
-	@docker stack deploy LEGA -c docker-stack.yml
+	@$(DOCKER) stack deploy LEGA -c docker-stack.yml
 
 ls:
-	@docker service list
+	@$(DOCKER) service list
 
 rm:
-	@docker stack rm LEGA
+	@$(DOCKER) stack rm LEGA
 	@sleep 10
 
 clean:
-	@rm -rf $(FILES)
-	@rm -rf /tmp/tsd /tmp/vault /tmp/db
-	@docker secret rm $(FILES)
+	@sudo rm -rf $(FILES)
+	@sudo rm -rf /tmp/tsd /tmp/vault /tmp/db
+	@$(DOCKER) secret rm $(FILES)
 
 test:
-	@mvn --no-transfer-progress test
+	@mvn -B test | grep -v 'Download.* http'
