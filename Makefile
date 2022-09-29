@@ -5,16 +5,17 @@ DOCKER := sudo docker
 FILES := localhost+5.pem localhost+5-key.pem localhost+5-client.pem localhost+5-client-key.pem rootCA.pem rootCA.p12 localhost+5.p12 localhost+5-client.p12 localhost+5-client-key.der rootCA-key.pem docker-stack.yml jwt.pub.pem jwt.priv.pem ega.pub.pem ega.sec.pass ega.sec.pem server.pem server-key.pem server.p12 client.pem client-key.pem client-key.der client.p12 init-mappings-db.sh
 
 # Manually entered secrets not available in the repo
+# (Either uncomment and set, or load from separate file)
 ####################################################
 
-# proxy service CEGA NSS
-export CEGA_AUTH_URL=https://nss-test.ega-archive.org/users/
+# proxy service CEGA NSS (norway1 connection details)
+#export CEGA_AUTH_URL=https://nss-test.ega-archive.org/users/
 #export CEGA_USERNAME=<must be filled>
 #export CEGA_PASSWORD=<must be filled
 
 # Test user in Norway1
-export EGA_BOX_USERNAME=ega-box-XXXX
-export EGA_BOX_PASSWORD=<secret-password to be filled>
+#export EGA_BOX_USERNAME=ega-box-XXXX
+#export EGA_BOX_PASSWORD=<secret-password to be filled>
 
 
 # Prefilled configs from the repo
