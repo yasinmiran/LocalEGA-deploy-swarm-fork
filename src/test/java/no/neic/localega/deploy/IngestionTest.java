@@ -113,7 +113,7 @@ public class IngestionTest {
         log.info("Visa JWT token: {}", token);
         String md5Hex = DigestUtils.md5Hex(Files.newInputStream(encFile.toPath()));
         log.info("Encrypted MD5 checksum: {}", md5Hex);
-        String uploadURL = String.format("https://localhost/stream/%s?md5=%s", encFile.getName(), md5Hex);
+        String uploadURL = String.format("https://localhost:10443/stream/%s?md5=%s", encFile.getName(), md5Hex);
         JsonNode jsonResponse = Unirest
                 .patch(uploadURL)
                 .basicAuth(System.getenv("EGA_BOX_USERNAME"), System.getenv("EGA_BOX_PASSWORD"))
@@ -123,7 +123,7 @@ public class IngestionTest {
                 .getBody();
         String uploadId = jsonResponse.getObject().getString("id");
         log.info("Upload ID: {}", uploadId);
-        String finalizeURL = String.format("https://localhost/stream/%s?uploadId=%s&chunk=end&sha256=%s&fileSize=%s",
+        String finalizeURL = String.format("https://localhost:10443/stream/%s?uploadId=%s&chunk=end&sha256=%s&fileSize=%s",
                 encFile.getName(),
                 uploadId,
                 encSHA256Checksum,
@@ -139,7 +139,8 @@ public class IngestionTest {
 
     private void ingest() throws IOException, TimeoutException, NoSuchAlgorithmException, KeyManagementException, URISyntaxException {
         log.info("Publishing ingestion message to CentralEGA...");
-        String mqConnectionString = System.getenv("CEGA_MQ_CONNECTION");
+	// Hardcoding url to mapped port from cegamq container
+        String mqConnectionString = new String("amqps://test:test@localhost:5672/lega?cacertfile=/certs/ca.pem");
         ConnectionFactory factory = new ConnectionFactory();
         factory.setUri(mqConnectionString);
         Connection connectionFactory = factory.newConnection();
