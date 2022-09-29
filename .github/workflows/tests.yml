@@ -24,17 +24,9 @@ jobs:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       BINDIR: /home/runner/.local/bin/
       SLEEP: ${{ secrets.SLEEP }}
-      CEGA_MQ_CONNECTION: ${{ secrets.CEGA_MQ_CONNECTION }}
+      CEGA_AUTH_URL: ${{ secrets.CEGA_AUTH_URL }}
       CEGA_USERNAME: ${{ secrets.CEGA_USERNAME }}
       CEGA_PASSWORD: ${{ secrets.CEGA_PASSWORD }}
-      BROKER_HOST: ${{ secrets.BROKER_HOST }}
-      BROKER_PORT: ${{ secrets.BROKER_PORT }}
-      BROKER_USERNAME: ${{ secrets.BROKER_USERNAME }}
-      BROKER_PASSWORD: ${{ secrets.BROKER_PASSWORD }}
-      BROKER_VHOST: ${{ secrets.BROKER_VHOST }}
-      BROKER_VALIDATE: ${{ secrets.BROKER_VALIDATE }}
-      EXCHANGE: ${{ secrets.EXCHANGE }}
-      CEGA_AUTH_URL: ${{ secrets.CEGA_AUTH_URL }}
       EGA_BOX_USERNAME: ${{ secrets.EGA_BOX_USERNAME }}
       EGA_BOX_PASSWORD: ${{ secrets.EGA_BOX_PASSWORD }}
 
