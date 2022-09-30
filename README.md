@@ -1,4 +1,4 @@
-# LocalEGA-deploy-swarm
+# LocalEGA-deploy-swarm-fork
 ![Integration tests](https://github.com/neicnordic/LocalEGA-deploy-swarm/workflows/Integration%20tests/badge.svg)
 
 Docker Swarm deployment of LocalEGA. This is a fork meant for internal testing purposes.
