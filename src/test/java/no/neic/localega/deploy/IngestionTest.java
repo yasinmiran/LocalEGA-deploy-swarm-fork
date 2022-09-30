@@ -162,7 +162,7 @@ public class IngestionTest {
     private void triggerIngestMessageFromCEGA() throws IOException, TimeoutException, NoSuchAlgorithmException, KeyManagementException, URISyntaxException {
         log.info("Publishing ingestion message to CentralEGA...");
 	// Hardcoding url to mapped port from cegamq container
-        String mqConnectionString = new String("amqps://test:test@localhost:5672/lega?cacertfile=/certs/ca.pem");
+        String mqConnectionString = new String("amqps://test:test@localhost:5672/lega?cacertfile=rootCA.pem");
         ConnectionFactory factory = new ConnectionFactory();
         factory.setUri(mqConnectionString);
         Connection connectionFactory = factory.newConnection();
@@ -189,7 +189,7 @@ public class IngestionTest {
     private void triggerAccessionMessageFromCEGA() throws IOException, TimeoutException, NoSuchAlgorithmException, KeyManagementException, URISyntaxException {
         log.info("Publishing accession message on behalf of CEGA to CEGA RMQ...");
 	// Hardcoding url to mapped port from cegamq container
-        String mqConnectionString = new String("amqps://test:test@localhost:5672/lega?cacertfile=/certs/ca.pem");
+        String mqConnectionString = new String("amqps://test:test@localhost:5672/lega?cacertfile=rootCA.pem");
         ConnectionFactory factory = new ConnectionFactory();
         factory.setUri(mqConnectionString);
         Connection connectionFactory = factory.newConnection();
@@ -255,7 +255,7 @@ public class IngestionTest {
         datasetId = "EGAD" + getRandomNumber(11);
 
 	// Hardcode url to mapped port from container to localhost
-        String mqConnectionString = new String("amqps://test:test@localhost:5672/lega?cacertfile=/certs/ca.pem");
+        String mqConnectionString = new String("amqps://test:test@localhost:5672/lega?cacertfile=rootCA.pem");
         ConnectionFactory factory = new ConnectionFactory();
         factory.setUri(mqConnectionString);
 
