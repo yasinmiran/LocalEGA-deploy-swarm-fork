@@ -19,6 +19,8 @@ services:
         target: /etc/ega/ssl/server.cert
     volumes:
       - /tmp/tsd:/tsd/p11/data/durable/apps/ega/
+    user: "65534:65534"
+    
 
   db:
     image: ghcr.io/neicnordic/sda-db:latest
@@ -231,7 +233,7 @@ services:
     command: "sda-ingest"
 
   verify:
-    image: ghcr.io/neicnordic/sda-pipeline:v0.2.5
+    image: ghcr.io/neicnordic/sda-pipeline:latest
     depends_on:
       - mq
       - db
