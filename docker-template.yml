@@ -428,8 +428,10 @@ services:
     user: "65534:65534"
 
 
-  # CEGA mock (RabbitMQ only for now)
-  # based on sda-auth/.github/intergration/docker-compose.yml
+  # CEGA mock
+  # Plain RabbitMQ only for now - cega messages triggered manually by test code
+  # based on neicnordic/sda-auth/.github/intergration/docker-compose.yml
+  # CEGA-auth based on neicnordic/sda-auth/dev-server/docker-compose.yml 
   
   cegamq:
     image: rabbitmq:3.8.16-management-alpine
@@ -469,6 +471,26 @@ services:
       timeout: 20s
       retries: 3
       
+  cega-auth:
+    container_name: cega-auth
+    image: egarchive/lega-base:release.v0.2.0
+    volumes:
+      - ./cega-users:/cega
+    command:
+      [
+        "python",
+        "/cega/cega-mock.py",
+        "0.0.0.0",
+        "8443",
+        "/cega/users.json"
+      ]
+    environment:
+      - LEGA_INSTANCES=dummy
+      - CEGA_USERS_PASSWORD=dummy
+      - CEGA_USERS_USER=dummy
+    ports:
+      - 8443:8443
+
 
 
 secrets:
