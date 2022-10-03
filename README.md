@@ -5,9 +5,10 @@ Docker Swarm deployment of LocalEGA. Please, refer to the project documentation 
 
 ## Purpose
 
-The `docker-template.yml` file can be used in two ways:
-1. Deploy LocalEGA locally as containers which can be used for CI/CD testing in Github (the CEGA BROKER service is not included).
+The `docker-template.yml` file can be used in several ways:
+1. Deploy all the NeIC nordic microservices in use by FEGA Norway locally as containers together with mock services for TSD and CEGA functionality needed.
 2. One can trim it down to a Public stack or a Private stack depending on what needs to be deployed.
+3. GitHub actions can test nightly if the master branch is building and testing ok (without connection to live CEGA services. For that, please visit the upstream neicnordic/localega-deploy-swarm repo)
 
 ## Development
 
@@ -19,7 +20,7 @@ The `docker-template.yml` file can be used in two ways:
 
 **IMPORTANT**
 
-CEGA-related env-vars should be included manually in `Makefile` before running the makefile. The variables are:
+CEGA-related env-vars _is no more needed to be set_  manually in `Makefile` before running the makefile. They decker-template.yml file already contains default values expected by the micro-services to work. The variables are:
 
 ```
 export CEGA_USERNAME= 
