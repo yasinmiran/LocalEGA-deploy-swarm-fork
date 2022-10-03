@@ -4,18 +4,19 @@ DOCKER := sudo docker
 
 FILES := localhost+5.pem localhost+5-key.pem localhost+5-client.pem localhost+5-client-key.pem rootCA.pem rootCA.p12 localhost+5.p12 localhost+5-client.p12 localhost+5-client-key.der rootCA-key.pem docker-stack.yml jwt.pub.pem jwt.priv.pem ega.pub.pem ega.sec.pass ega.sec.pem server.pem server-key.pem server.p12 client.pem client-key.pem client-key.der client.p12 init-mappings-db.sh
 
-# Manually entered secrets not available in the repo
-# (Either uncomment and set, or load from separate file)
+# Previously manually entered secrets not available in the repo
+# Now with default values in mock containers instead
 ####################################################
 
-# proxy service CEGA NSS (norway1 connection details)
-#export CEGA_AUTH_URL=https://nss-test.ega-archive.org/users/
-#export CEGA_USERNAME=<must be filled>
-#export CEGA_PASSWORD=<must be filled
+# proxy service CEGA NSS (to new mock CEGA auth service)
+export CEGA_AUTH_URL=http://cega-auth:8443/lega/v1/legas/users/
+export CEGA_USERNAME=dummy
+export CEGA_PASSWORD=dummy
 
-# Test user in Norway1
-#export EGA_BOX_USERNAME=ega-box-XXXX
-#export EGA_BOX_PASSWORD=<secret-password to be filled>
+# Test user in CEGA NSS mock service
+# (confusing it's the same as ID and SECRET above)....
+export EGA_BOX_USERNAME=dummy
+export EGA_BOX_PASSWORD=dummy
 
 
 # Prefilled configs from the repo
