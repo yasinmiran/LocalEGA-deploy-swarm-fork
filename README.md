@@ -4,6 +4,13 @@
 Docker Swarm deployment of LocalEGA. This is a fork meant for internal testing purposes.
 Please, refer to the project documentation for getting more comprehensive information: https://neic-sda.readthedocs.io/
 
+## Purpose
+
+The `docker-template.yml` file can be used in several ways:
+1. Deploy all the NeIC nordic microservices in use by FEGA Norway locally as containers together with mock services for TSD and CEGA functionality needed.
+2. One can trim it down to a Public stack or a Private stack depending on what needs to be deployed.
+3. GitHub actions can test nightly if the master branch is building and testing ok (without connection to live CEGA services. For that, please visit the upstream neicnordic/localega-deploy-swarm repo)
+
 ## Development
 
 ### Pre-requisites
@@ -12,11 +19,35 @@ Please, refer to the project documentation for getting more comprehensive inform
 - `crypt4gh` (https://github.com/elixir-oslo/crypt4gh)
 - `j2cli` (https://github.com/kolypto/j2cli)
 
+**IMPORTANT**
+
+CEGA-related env-vars _is no more needed to be set_  manually in `Makefile` before running the makefile. They decker-template.yml file already contains default values expected by the micro-services to work. The variables are:
+
+```
+export CEGA_USERNAME= 
+export CEGA_PASSWORD=
+export BROKER_HOST= 
+export BROKER_PORT=
+export BROKER_USERNAME=
+export BROKER_PASSWORD=
+export CEGA_MQ_CONNECTION= 
+export BROKER_VALIDATE= 
+export BROKER_VHOST= 
+export EXCHANGE=
+```
+all these variables are required by proxy and interceptor micro services.
+
 ### How-to
 
-`make bootstrap deploy` (CEGA-related env-vars should be set manually, e.g. `CEGA_CONNECTION`)
+Run:
+```bash
+> make bootstrap deploy
+```
 
-Cleaning up: `make rm purge`.
+Clean:
+```bash
+> make rm clean
+```
 
 ## Production
 

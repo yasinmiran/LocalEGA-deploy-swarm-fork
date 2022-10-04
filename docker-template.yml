@@ -19,6 +19,8 @@ services:
         target: /etc/ega/ssl/server.cert
     volumes:
       - /tmp/tsd:/tsd/p11/data/durable/apps/ega/
+    user: "65534:65534"
+    
 
   db:
     image: ghcr.io/neicnordic/sda-db:latest
@@ -94,8 +96,13 @@ services:
   # Public stack
   proxy:
     image: ghcr.io/uio-bmi/localega-tsd-proxy:latest
+    depends_on:
+      - mq
+      - cegamq
+      - postgres
+      - tsd
     ports:
-      - 443:8080
+      - 10443:8080
     deploy:
       restart_policy:
         condition: on-failure
@@ -132,6 +139,10 @@ services:
 
   interceptor:
     image: ghcr.io/uio-bmi/mq-interceptor:latest
+    depends_on:
+      - cegamq
+      - mq
+      - postgres
     deploy:
       restart_policy:
         condition: on-failure
@@ -155,7 +166,7 @@ services:
         delay: 5s
         window: 120s
     environment:
-      - POSTGRES_PASSWORD
+      - POSTGRES_PASSWORD={{POSTGRES_PASSWORD}}
     secrets:
       - source: init-mappings-db.sh
         target: /docker-entrypoint-initdb.d/init-mappings-db.sh
@@ -163,6 +174,9 @@ services:
   # Private stack
   ingest:
     image: ghcr.io/neicnordic/sda-pipeline:latest
+    depends_on:
+      - mq
+      - db
     deploy:
       restart_policy:
         condition: on-failure
@@ -220,7 +234,10 @@ services:
 
   verify:
     image: ghcr.io/neicnordic/sda-pipeline:latest
-    deploy:
+    depends_on:
+      - mq
+      - db
+    deploy:	
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -252,6 +269,7 @@ services:
       - DB_SSLMODE=require
       - DB_CLIENTCERT=/etc/ega/client.cert
       - DB_CLIENTKEY=/etc/ega/client-key.cert
+      - INBOX_LOCATION=/ega/inbox	
       - LOG_LEVEL=debug
     secrets:
       - source: rootCA.pem
@@ -270,10 +288,14 @@ services:
         target: /etc/ega/ega.sec
     volumes:
       - /tmp/vault:/ega/archive
+      - /tmp/tsd:/ega/inbox
     command: "sda-verify"
 
   finalize:
     image: ghcr.io/neicnordic/sda-pipeline:latest
+    depends_on:
+      - mq
+      - db    
     deploy:
       restart_policy:
         condition: on-failure
@@ -320,6 +342,9 @@ services:
 
   mapper:
     image: ghcr.io/neicnordic/sda-pipeline:latest
+    depends_on:
+      - mq
+      - db    
     deploy:
       restart_policy:
         condition: on-failure
@@ -365,6 +390,9 @@ services:
 
   doa:
     image: neicnordic/sda-doa:release-v1.6.0
+    depends_on:
+      - mq
+      - db    
     ports:
       - 80:8080
     deploy:
@@ -399,6 +427,72 @@ services:
       - /tmp/vault:/ega/archive
     user: "65534:65534"
 
+
+  # CEGA mock
+  # Plain RabbitMQ only for now - cega messages triggered manually by test code
+  # based on neicnordic/sda-auth/.github/intergration/docker-compose.yml
+  # CEGA-auth based on neicnordic/sda-auth/dev-server/docker-compose.yml 
+  
+  cegamq:
+    image: rabbitmq:3.8.16-management-alpine
+    environment:
+      - RABBITMQ_CONFIG_FILE=/etc/rabbitmq/conf/cega
+      - RABBITMQ_ENABLED_PLUGINS_FILE=/etc/rabbitmq/conf/cega.plugins
+    ports:
+      - "5672:5671"
+      - "15672:15672"
+      - "25672:15672"
+    secrets:
+      - source: server.pem
+        target: /etc/rabbitmq/ssl/mq.pem
+        uid: '100'
+        gid: '101'
+        mode: 0600
+      - source: server-key.pem
+        target: /etc/rabbitmq/ssl/mq-key.pem
+        uid: '100'
+        gid: '101'
+        mode: 0600
+      - source: rootCA.pem
+        target: /etc/rabbitmq/ssl/ca.pem      
+    volumes:
+      - ./cega.conf:/etc/rabbitmq/conf/cega.conf
+      - ./cega.json:/etc/rabbitmq/conf/cega.json
+      - ./cega.plugins:/etc/rabbitmq/conf/cega.plugins
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "bash",
+          "-c",
+          "rabbitmq-diagnostics -q check_running && rabbitmq-diagnostics -q check_local_alarms"
+        ]
+      interval: 5s
+      timeout: 20s
+      retries: 3
+      
+  cega-auth:
+    container_name: cega-auth
+    image: egarchive/lega-base:release.v0.2.0
+    volumes:
+      - ./cega-users:/cega
+    command:
+      [
+        "python",
+        "/cega/cega-mock.py",
+        "0.0.0.0",
+        "8443",
+        "/cega/users.json"
+      ]
+    environment:
+      - LEGA_INSTANCES=dummy
+      - CEGA_USERS_PASSWORD=dummy
+      - CEGA_USERS_USER=dummy
+    ports:
+      - 8443:8443
+
+
+
 secrets:
   rootCA.pem:
     external: true
@@ -426,3 +520,4 @@ secrets:
     external: true
   init-mappings-db.sh:
     external: true
+

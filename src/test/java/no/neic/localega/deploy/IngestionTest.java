@@ -57,6 +57,7 @@ public class IngestionTest {
     private File encFile;
     private String rawSHA256Checksum;
     private String encSHA256Checksum;
+    private String rawMD5Checksum;
     private String stableId;
     private String datasetId;
     private String archivePath;
@@ -69,9 +70,15 @@ public class IngestionTest {
         RandomAccessFile randomAccessFile = new RandomAccessFile(rawFile, "rw");
         randomAccessFile.setLength(fileSize);
         randomAccessFile.close();
+
         byte[] bytes = DigestUtils.sha256(Files.newInputStream(rawFile.toPath()));
         rawSHA256Checksum = Hex.encodeHexString(bytes);
         log.info("Raw SHA256 checksum: " + rawSHA256Checksum);
+
+	byte[] bytes2 = DigestUtils.md5(Files.newInputStream(rawFile.toPath()));
+        rawMD5Checksum = Hex.encodeHexString(bytes2);
+        log.info("Raw MD5 checksum: " + rawMD5Checksum);
+
 
         log.info("Generating sender and recipient key-pairs...");
         KeyPair senderKeyPair = keyUtils.generateKeyPair();
@@ -95,12 +102,27 @@ public class IngestionTest {
     public void test() {
         try {
             upload();
-            Thread.sleep(10000); // wait for triggers to be set up at CEGA
-            ingest();
-            Thread.sleep(10000); // wait for ingestion and verification to be finished
-            verify();
-            map();
-            download();
+            Thread.sleep(5000); // wait for triggers to be set up at CEGA - Not really needed if using local CEGA container
+
+            triggerIngestMessageFromCEGA();
+	    Thread.sleep(5000); // Wait for the LEGA ingest and verify services to complete and update DB 
+
+	    triggerAccessionMessageFromCEGA();
+            Thread.sleep(5000); // Wait for LEGA finalize service to complete and update DB
+
+	    // Verify that everything is ok so far
+            verifyAfterFinalizeAndLookUpAccessionID();
+
+	    // Trigger the process further,
+	    // with retrieved information from earlier steps
+            triggerMappingMessageFromCEGA();
+
+	    // No wait needed here probably? Prev mapping step is pretty quick.
+
+	    
+	    // Test and check that what we get out match the original
+	    // inserted data at the top 
+            downloadDatasetAndVerifyResults();
         } catch (Throwable t) {
             log.error(t.getMessage(), t);
             Assert.fail();
@@ -113,7 +135,7 @@ public class IngestionTest {
         log.info("Visa JWT token: {}", token);
         String md5Hex = DigestUtils.md5Hex(Files.newInputStream(encFile.toPath()));
         log.info("Encrypted MD5 checksum: {}", md5Hex);
-        String uploadURL = String.format("https://localhost/stream/%s?md5=%s", encFile.getName(), md5Hex);
+        String uploadURL = String.format("https://localhost:10443/stream/%s?md5=%s", encFile.getName(), md5Hex);
         JsonNode jsonResponse = Unirest
                 .patch(uploadURL)
                 .basicAuth(System.getenv("EGA_BOX_USERNAME"), System.getenv("EGA_BOX_PASSWORD"))
@@ -123,7 +145,7 @@ public class IngestionTest {
                 .getBody();
         String uploadId = jsonResponse.getObject().getString("id");
         log.info("Upload ID: {}", uploadId);
-        String finalizeURL = String.format("https://localhost/stream/%s?uploadId=%s&chunk=end&sha256=%s&fileSize=%s",
+        String finalizeURL = String.format("https://localhost:10443/stream/%s?uploadId=%s&chunk=end&sha256=%s&fileSize=%s",
                 encFile.getName(),
                 uploadId,
                 encSHA256Checksum,
@@ -137,9 +159,10 @@ public class IngestionTest {
         Assert.assertEquals(201, jsonResponse.getObject().getInt("statusCode"));
     }
 
-    private void ingest() throws IOException, TimeoutException, NoSuchAlgorithmException, KeyManagementException, URISyntaxException {
+    private void triggerIngestMessageFromCEGA() throws IOException, TimeoutException, NoSuchAlgorithmException, KeyManagementException, URISyntaxException {
         log.info("Publishing ingestion message to CentralEGA...");
-        String mqConnectionString = System.getenv("CEGA_MQ_CONNECTION");
+	// Hardcoding url to mapped port from cegamq container
+        String mqConnectionString = new String("amqps://test:test@localhost:5672/lega?cacertfile=rootCA.pem");
         ConnectionFactory factory = new ConnectionFactory();
         factory.setUri(mqConnectionString);
         Connection connectionFactory = factory.newConnection();
@@ -163,9 +186,41 @@ public class IngestionTest {
         connectionFactory.close();
     }
 
+    private void triggerAccessionMessageFromCEGA() throws IOException, TimeoutException, NoSuchAlgorithmException, KeyManagementException, URISyntaxException {
+        log.info("Publishing accession message on behalf of CEGA to CEGA RMQ...");
+	// Hardcoding url to mapped port from cegamq container
+        String mqConnectionString = new String("amqps://test:test@localhost:5672/lega?cacertfile=rootCA.pem");
+        ConnectionFactory factory = new ConnectionFactory();
+        factory.setUri(mqConnectionString);
+        Connection connectionFactory = factory.newConnection();
+        Channel channel = connectionFactory.createChannel();
+        AMQP.BasicProperties properties = new AMQP.BasicProperties()
+                .builder()
+                .deliveryMode(2)
+                .contentType("application/json")
+                .contentEncoding(StandardCharsets.UTF_8.displayName())
+                .correlationId(UUID.randomUUID().toString())
+                .build();
+
+	String randomFileAccessionID = "EGAF" + getRandomNumber(11);
+	
+        String message = String.format("{\"type\":\"accession\",\"user\":\"%s\",\"filepath\":\"/p11-dummy@elixir-europe.org/files/%s\",\"accession_id\":\"%s\", \"decrypted_checksums\": [ { \"type\":\"sha256\", \"value\": \"%s\" },{\"type\":\"md5\", \"value\": \"%s\"} ] }", System.getenv("EGA_BOX_USERNAME"), encFile.getName(), randomFileAccessionID,  rawSHA256Checksum, rawMD5Checksum);
+        log.info(message);
+        channel.basicPublish("localega.v1",
+                "files",
+                properties,
+                message.getBytes());
+
+        channel.close();
+        connectionFactory.close();
+    }
+
+    
+
+    
     @SuppressWarnings({"SqlResolve", "SqlNoDataSourceInspection"})
-    private void verify() throws SQLException {
-        log.info("Starting verification...");
+    private void verifyAfterFinalizeAndLookUpAccessionID() throws SQLException {
+        log.info("Starting verification of state after finalize step...");
         String dbHost = "localhost";
         String port = "5432";
         String db = "lega";
@@ -194,12 +249,13 @@ public class IngestionTest {
         log.info("Verification completed successfully");
     }
 
-    private void map() throws NoSuchAlgorithmException, KeyManagementException, URISyntaxException, IOException, TimeoutException {
+    private void triggerMappingMessageFromCEGA() throws NoSuchAlgorithmException, KeyManagementException, URISyntaxException, IOException, TimeoutException {
         log.info("Mapping file to a dataset...");
 
         datasetId = "EGAD" + getRandomNumber(11);
 
-        String mqConnectionString = System.getenv("CEGA_MQ_CONNECTION");
+	// Hardcode url to mapped port from container to localhost
+        String mqConnectionString = new String("amqps://test:test@localhost:5672/lega?cacertfile=rootCA.pem");
         ConnectionFactory factory = new ConnectionFactory();
         factory.setUri(mqConnectionString);
 
@@ -216,7 +272,7 @@ public class IngestionTest {
         String message = String.format("{\"type\":\"mapping\",\"accession_ids\":[\"%s\"],\"dataset_id\":\"%s\"}", stableId, datasetId);
         log.info(message);
         channel.basicPublish("localega.v1",
-                "mapping",
+                "files",
                 properties,
                 message.getBytes());
 
@@ -226,7 +282,7 @@ public class IngestionTest {
         log.info("Permissions granted successfully");
     }
 
-    private void download() throws GeneralSecurityException, IOException {
+    private void downloadDatasetAndVerifyResults() throws GeneralSecurityException, IOException {
         String token = generateVisaToken(datasetId);
         log.info("Visa JWT token: {}", token);
 
@@ -236,7 +292,8 @@ public class IngestionTest {
                 .asString()
                 .getBody();
         Assert.assertEquals(String.format("[\"%s\"]", datasetId).strip(), datasets.strip());
-
+	
+	
         String expected = String.format(
                 "[{\"fileId\":\"%s\",\"datasetId\":\"%s\",\"displayFileName\":\"%s\",\"fileName\":\"%s\",\"fileSize\":10490240,\"unencryptedChecksum\":null,\"unencryptedChecksumType\":null,\"decryptedFileSize\":10485760,\"decryptedFileChecksum\":\"%s\",\"decryptedFileChecksumType\":\"SHA256\",\"fileStatus\":\"READY\"}]\n",
                 stableId,
