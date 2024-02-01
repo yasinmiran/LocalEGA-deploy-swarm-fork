@@ -46,6 +46,7 @@ export FILES=("localhost+5.pem" "localhost+5-key.pem" "localhost+5-client.pem" "
 
 # Function to check if the current node
 # is part of a Docker Swarm
+# FIXME
 function is_swarm_active() {
   if [ "$(docker info --format '{{.Swarm.LocalNodeState}}')" = "active" ]; then
     return 0 # Swarm is active
@@ -113,13 +114,13 @@ function generate_certs_and_secrets() {
 
   # Step 7: Create Docker secrets for JWT private
   # key, JWT public key, and other secrets
-  docker secret create jwt.priv.pem jwt.priv.pem
+  create_secret jwt.priv.pem jwt.priv.pem
   openssl rsa -pubout -in jwt.priv.pem -out jwt.pub.pem
-  docker secret create jwt.pub.pem jwt.pub.pem
+  create_secret jwt.pub.pem jwt.pub.pem
   printf "%s" "${KEY_PASSWORD}" >ega.sec.pass
-  docker secret create ega.sec.pass ega.sec.pass
+  create_secret ega.sec.pass ega.sec.pass
   crypt4gh generate -n ega -p ${KEY_PASSWORD}
-  docker secret create ega.sec.pem ega.sec.pem
+  create_secret ega.sec.pem ega.sec.pem
 
   # Step 8: Generate Docker stack configuration file
   if [ -f docker-template.yml ]; then
@@ -142,10 +143,10 @@ function generate_certs_and_secrets() {
 
   # Step 9: Copy root CA certificate and private key
   cp "$CAROOT/rootCA.pem" rootCA.pem
-  docker secret create rootCA.pem rootCA.pem
+  create_secret rootCA.pem rootCA.pem
   cp "$CAROOT/rootCA-key.pem" rootCA-key.pem
   chmod 600 rootCA-key.pem
-  docker secret create rootCA-key.pem rootCA-key.pem
+  create_secret rootCA-key.pem rootCA-key.pem
 
   # Step 10: Export root CA certificate to PKCS#12 format
   openssl pkcs12 -export \
@@ -153,24 +154,24 @@ function generate_certs_and_secrets() {
     -in rootCA.pem \
     -inkey rootCA-key.pem \
     -passout pass:${ROOT_CERT_PASSWORD}
-  docker secret create rootCA.p12 rootCA.p12
+  create_secret rootCA.p12 rootCA.p12
 
   # Step 11: Copy and create Docker secrets
   # for server and client certificates
   cp localhost+5.pem server.pem
-  docker secret create server.pem server.pem
+  create_secret server.pem server.pem
   cp localhost+5-key.pem server-key.pem
-  docker secret create server-key.pem server-key.pem
+  create_secret server-key.pem server-key.pem
   cp localhost+5.p12 server.p12
-  docker secret create server.p12 server.p12
+  create_secret server.p12 server.p12
   cp localhost+5-client.pem client.pem
-  docker secret create client.pem client.pem
+  create_secret client.pem client.pem
   cp localhost+5-client-key.pem client-key.pem
-  docker secret create client-key.pem client-key.pem
+  create_secret client-key.pem client-key.pem
   cp localhost+5-client-key.der client-key.der
-  docker secret create client-key.der client-key.der
+  create_secret client-key.der client-key.der
   cp localhost+5-client.p12 client.p12
-  docker secret create client.p12 client.p12
+  create_secret client.p12 client.p12
 
 }
 
@@ -185,11 +186,16 @@ function init() {
 
   # Initialize the Docker swarm and make
   # the current node the manager.
-  if is_swarm_active; then
-    echo "This node is already part of a Docker Swarm ✅. Skipping..."
+  if [[ "$CONTAINER_TOOL" = "docker" ]] then
+    if is_swarm_active; then
+      echo "This node is already part of a Docker Swarm ✅. Skipping..."
+    else
+      echo "Initializing Docker Swarm..."
+      docker swarm init
+    fi
   else
-    echo "Initializing Docker Swarm..."
-    docker swarm init
+    echo "You're using podman. This is the primary node."
+    # podman pod create -n lega-proxy-swarm
   fi
 
   echo "Configuring Certificates..."
@@ -202,7 +208,7 @@ function init() {
   echo "$create_mappings_table" >>init-mappings-db.sh
 
   # Create a Docker secret for init-mappings-db.sh
-  docker secret create init-mappings-db.sh init-mappings-db.sh
+  create_secret init-mappings-db.sh init-mappings-db.sh
 
   # Create and own the temporary dirs
   mkdir -p /tmp/tsd /tmp/vault /tmp/db
@@ -226,22 +232,37 @@ function clean() {
   rm -rf /tmp/tsd /tmp/vault /tmp/db
 
   # Remove Docker secrets
-  for file in "${FILES[@]}"; do
-    if docker secret ls | grep -q "$file"; then
-      docker secret rm "$file"
-      echo "Removed Docker secret: $file"
-    fi
-  done
+  if [[ "$CONTAINER_TOOL" = "docker" ]] then
+    for file in "${FILES[@]}"; do
+      if docker secret ls | grep -q "$file"; then
+        docker secret rm "$file"
+        echo "Removed Docker secret: $file"
+      fi
+    done
+    docker swarm leave --force
+    echo "Left the Docker swarm"
+  fi
 
-  docker swarm leave --force
-  echo "Left the Docker swarm"
+  # FIXME: clean podman secrets and remove the lega-proxy-swarm pod
 
   echo "Cleanup completed"
 
 }
 
+# Function to create Docker or Podman secrets
+# Adjust commands as needed for Podman
+function create_secret() {
+  local secret_name=$1
+  local secret_file=$2
+  if [ "$CONTAINER_TOOL" = "docker" ]; then
+    docker secret create "$secret_name" "$secret_file"
+  elif [ "$CONTAINER_TOOL" = "podman" ]; then
+    podman secret create "$secret_name" "$secret_file"
+  fi
+}
+
 function start() {
-  echo "Starting the LEGA stack 🚀"
+  echo "Starting the LEGA stack 🚀🟢"
   docker stack deploy LEGA -c docker-stack.yml
 }
 
@@ -287,14 +308,28 @@ function check_dependencies() {
 
 # Entry --
 
-if [ $# -ne 1 ]; then
-  echo "Usage: $0 [bootstrap|clean|start|stop]"
+# Check if an additional argument is provided for
+# the container tool (Docker or Podman)
+if [ $# -lt 2 ]; then
+  echo "Usage: $0 [container_tool] [action]"
+  echo "    <container_tool>: docker | podman"
+  echo "    <action>: bootstrap | clean | start | stop"
+  exit 1
+fi
+
+# Capture the container tool and action from arguments
+CONTAINER_TOOL=$1
+ACTION=$2
+
+# Check if the specified container tool is either docker or podman
+if [[ "$CONTAINER_TOOL" != "docker" && "$CONTAINER_TOOL" != "podman" ]]; then
+  echo "Invalid container tool. Please specify 'docker' or 'podman'."
   exit 1
 fi
 
 # Parse the action argument and perform
 # the corresponding action
-case "$1" in
+case "$ACTION" in
 "clean")
   clean
   ;;
@@ -311,5 +346,4 @@ case "$1" in
   echo "Invalid action. Usage: $0 [delete|list]"
   exit 1
   ;;
-
 esac

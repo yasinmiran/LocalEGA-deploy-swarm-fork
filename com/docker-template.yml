@@ -1,0 +1,523 @@
+version: '3.3'
+
+services:
+
+  # TSD simulation
+  tsd:
+    image: uiobmi/tsd-stub:latest
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - CERT_PASSWORD={{SERVER_CERT_PASSWORD}}
+    secrets:
+      - source: rootCA.pem
+        target: /etc/ega/ssl/CA.cert
+      - source: server.p12
+        target: /etc/ega/ssl/server.cert
+    volumes:
+      - /tmp/tsd:/tsd/p11/data/durable/apps/ega/
+    user: "65534:65534"
+    
+
+  db:
+    image: ghcr.io/neicnordic/sda-db:latest
+    ports:
+      - 5432:5432
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - DB_LEGA_IN_PASSWORD={{DB_LEGA_IN_PASSWORD}}
+      - DB_LEGA_OUT_PASSWORD={{DB_LEGA_OUT_PASSWORD}}
+      - PGDATA=/ega/data
+      - PG_VERIFY_PEER=verify-ca
+      - PG_SERVER_CERT=/etc/ega/pg.cert
+      - PG_SERVER_KEY=/etc/ega/pg.key
+      - PG_CA=/etc/ega/CA.cert
+    secrets:
+      - source: server.pem
+        target: /etc/ega/pg.cert
+        uid: '70'
+        gid: '70'
+        mode: 0600
+      - source: server-key.pem
+        target: /etc/ega/pg.key
+        uid: '70'
+        gid: '70'
+        mode: 0600
+      - source: rootCA.pem
+        target: /etc/ega/CA.cert
+        uid: '70'
+        gid: '70'
+        mode: 0600
+    volumes:
+      - /tmp/db:/ega
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "localhost", "-U", "lega_out"]
+      interval: 5s
+      timeout: 20s
+      retries: 3
+
+  mq:
+    image: ghcr.io/uio-bmi/localega-broker:latest
+    ports:
+      - 5671:5671
+      - 15671:15671
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - VIRTUAL_HOST={{PRIVATE_BROKER_VHOST}}
+      - SSL_VERIFY=verify_peer
+      - SSL_FAIL_IF_NO_PEER_CERT=false
+      - SSL_DEPTH=2
+      - USER_NAME={{PRIVATE_BROKER_USER}}
+      - PASSWORD_HASH={{PRIVATE_BROKER_HASH}}
+    secrets:
+      - source: server.pem
+        target: /etc/rabbitmq/ssl.cert
+      - source: server-key.pem
+        target: /etc/rabbitmq/ssl.key
+      - source: rootCA.pem
+        target: /etc/rabbitmq/CA.cert
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "5671" ]
+      interval: 5s
+      timeout: 20s
+      retries: 3
+
+  # Public stack
+  proxy:
+    image: ghcr.io/uio-bmi/localega-tsd-proxy:latest
+    depends_on:
+      - mq
+      - cegamq
+      - postgres
+      - tsd
+    ports:
+      - 10443:8080
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - ROOT_CERT_PASSWORD={{ROOT_CERT_PASSWORD}}
+      - TSD_ROOT_CERT_PASSWORD={{TSD_ROOT_CERT_PASSWORD}}
+      - SERVER_CERT_PASSWORD={{SERVER_CERT_PASSWORD}}
+      - CLIENT_ID=test
+      - CLIENT_SECRET=test
+      - BROKER_HOST={{BROKER_HOST}}
+      - BROKER_PORT={{BROKER_PORT}}
+      - BROKER_USERNAME={{BROKER_USERNAME}}
+      - BROKER_PASSWORD={{BROKER_PASSWORD}}
+      - BROKER_VHOST={{BROKER_VHOST}}
+      - BROKER_VALIDATE={{BROKER_VALIDATE}}
+      - EXCHANGE={{EXCHANGE}}
+      - CEGA_AUTH_URL={{CEGA_AUTH_URL}}
+      - CEGA_USERNAME={{CEGA_USERNAME}}
+      - CEGA_PASSWORD={{CEGA_PASSWORD}}
+      - TSD_HOST={{TSD_HOST}}
+      - TSD_ACCESS_KEY={{TSD_ACCESS_KEY}}
+      - POSTGRES_PASSWORD={{POSTGRES_PASSWORD}}
+    secrets:
+      - source: rootCA.p12
+        target: /etc/ega/ssl/CA.cert
+      - source: server.p12
+        target: /etc/ega/ssl/server.cert
+      - source: jwt.pub.pem
+        target: /etc/ega/jwt/passport.pem
+      - source: jwt.pub.pem
+        target: /etc/ega/jwt/visa.pem
+
+  interceptor:
+    image: ghcr.io/uio-bmi/mq-interceptor:latest
+    depends_on:
+      - cegamq
+      - mq
+      - postgres
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - POSTGRES_CONNECTION={{POSTGRES_CONNECTION}}
+      - CEGA_MQ_CONNECTION={{CEGA_MQ_CONNECTION}}
+      - CEGA_MQ_EXCHANGE=localega.v1
+      - CEGA_MQ_QUEUE=v1.files
+      - LEGA_MQ_CONNECTION={{MQ_CONNECTION}}
+      - LEGA_MQ_EXCHANGE=sda
+
+  postgres:
+    image: postgres
+    ports:
+      - 5433:5432
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - POSTGRES_PASSWORD={{POSTGRES_PASSWORD}}
+    secrets:
+      - source: init-mappings-db.sh
+        target: /docker-entrypoint-initdb.d/init-mappings-db.sh
+
+  # Private stack
+  ingest:
+    image: ghcr.io/neicnordic/sda-pipeline:latest
+    depends_on:
+      - mq
+      - db
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - ARCHIVE_TYPE=posix
+      - ARCHIVE_LOCATION=/ega/archive
+      - BROKER_HOST={{MQ_HOST}}
+      - BROKER_PORT=5671
+      - BROKER_USER={{PRIVATE_BROKER_USER}}
+      - BROKER_PASSWORD={{PRIVATE_BROKER_PASSWORD}}
+      - BROKER_VHOST={{PRIVATE_BROKER_VHOST}}
+      - BROKER_QUEUE=ingest
+      - BROKER_EXCHANGE=sda
+      - BROKER_ROUTINGKEY=archived
+      - BROKER_ROUTINGERROR=error
+      - BROKER_SSL=true
+      - BROKER_VERIFYPEER=true
+      - BROKER_CACERT=/etc/ega/CA.cert
+      - BROKER_CLIENTCERT=/etc/ega/client.cert
+      - BROKER_CLIENTKEY=/etc/ega/client-key.cert
+      - C4GH_PASSPHRASE={{KEY_PASSWORD}}
+      - C4GH_FILEPATH=/etc/ega/ega.sec
+      - DB_HOST={{DB_HOST}}
+      - DB_PORT=5432
+      - DB_USER={{DB_LEGA_IN_USER}}
+      - DB_PASSWORD={{DB_LEGA_IN_PASSWORD}}
+      - DB_DATABASE=lega
+      - DB_SSLMODE=require
+      - DB_CLIENTCERT=/etc/ega/client.cert
+      - DB_CLIENTKEY=/etc/ega/client-key.cert
+      - INBOX_TYPE=posix
+      - INBOX_LOCATION=/ega/inbox
+      - LOG_LEVEL=debug
+    secrets:
+      - source: rootCA.pem
+        target: /etc/ega/CA.cert
+      - source: client.pem
+        target: /etc/ega/client.cert
+        uid: '65534'
+        gid: '65534'
+        mode: 0600
+      - source: client-key.pem
+        target: /etc/ega/client-key.cert
+        uid: '65534'
+        gid: '65534'
+        mode: 0600
+      - source: ega.sec.pem
+        target: /etc/ega/ega.sec
+    volumes:
+      - /tmp/tsd:/ega/inbox
+      - /tmp/vault:/ega/archive
+    command: "sda-ingest"
+
+  verify:
+    image: ghcr.io/neicnordic/sda-pipeline:latest
+    depends_on:
+      - mq
+      - db
+    deploy:	
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - ARCHIVE_TYPE=posix
+      - ARCHIVE_LOCATION=/ega/archive
+      - BROKER_HOST={{MQ_HOST}}
+      - BROKER_PORT=5671
+      - BROKER_USER={{PRIVATE_BROKER_USER}}
+      - BROKER_PASSWORD={{PRIVATE_BROKER_PASSWORD}}
+      - BROKER_VHOST={{PRIVATE_BROKER_VHOST}}
+      - BROKER_QUEUE=archived
+      - BROKER_EXCHANGE=sda
+      - BROKER_ROUTINGKEY=verified
+      - BROKER_ROUTINGERROR=error
+      - BROKER_SSL=true
+      - BROKER_VERIFYPEER=true
+      - BROKER_CACERT=/etc/ega/CA.cert
+      - BROKER_CLIENTCERT=/etc/ega/client.cert
+      - BROKER_CLIENTKEY=/etc/ega/client-key.cert
+      - C4GH_PASSPHRASE={{KEY_PASSWORD}}
+      - C4GH_FILEPATH=/etc/ega/ega.sec
+      - DB_HOST={{DB_HOST}}
+      - DB_PORT=5432
+      - DB_USER={{DB_LEGA_IN_USER}}
+      - DB_PASSWORD={{DB_LEGA_IN_PASSWORD}}
+      - DB_DATABASE=lega
+      - DB_SSLMODE=require
+      - DB_CLIENTCERT=/etc/ega/client.cert
+      - DB_CLIENTKEY=/etc/ega/client-key.cert
+      - INBOX_LOCATION=/ega/inbox	
+      - LOG_LEVEL=debug
+    secrets:
+      - source: rootCA.pem
+        target: /etc/ega/CA.cert
+      - source: client.pem
+        target: /etc/ega/client.cert
+        uid: '65534'
+        gid: '65534'
+        mode: 0600
+      - source: client-key.pem
+        target: /etc/ega/client-key.cert
+        uid: '65534'
+        gid: '65534'
+        mode: 0600
+      - source: ega.sec.pem
+        target: /etc/ega/ega.sec
+    volumes:
+      - /tmp/vault:/ega/archive
+      - /tmp/tsd:/ega/inbox
+    command: "sda-verify"
+
+  finalize:
+    image: ghcr.io/neicnordic/sda-pipeline:latest
+    depends_on:
+      - mq
+      - db    
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - BROKER_HOST={{MQ_HOST}}
+      - BROKER_PORT=5671
+      - BROKER_USER={{PRIVATE_BROKER_USER}}
+      - BROKER_PASSWORD={{PRIVATE_BROKER_PASSWORD}}
+      - BROKER_VHOST={{PRIVATE_BROKER_VHOST}}
+      - BROKER_QUEUE=accessionIDs
+      - BROKER_EXCHANGE=sda
+      - BROKER_ROUTINGKEY=completed
+      - BROKER_ROUTINGERROR=error
+      - BROKER_SSL=true
+      - BROKER_VERIFYPEER=true
+      - BROKER_CACERT=/etc/ega/CA.cert
+      - BROKER_CLIENTCERT=/etc/ega/client.cert
+      - BROKER_CLIENTKEY=/etc/ega/client-key.cert
+      - DB_HOST={{DB_HOST}}
+      - DB_PORT=5432
+      - DB_USER={{DB_LEGA_IN_USER}}
+      - DB_PASSWORD={{DB_LEGA_IN_PASSWORD}}
+      - DB_DATABASE=lega
+      - DB_SSLMODE=require
+      - DB_CLIENTCERT=/etc/ega/client.cert
+      - DB_CLIENTKEY=/etc/ega/client-key.cert
+      - LOG_LEVEL=debug
+    command: "sda-finalize"
+    secrets:
+      - source: rootCA.pem
+        target: /etc/ega/CA.cert
+      - source: client.pem
+        target: /etc/ega/client.cert
+        uid: '65534'
+        gid: '65534'
+        mode: 0600
+      - source: client-key.pem
+        target: /etc/ega/client-key.cert
+        uid: '65534'
+        gid: '65534'
+        mode: 0600
+
+  mapper:
+    image: ghcr.io/neicnordic/sda-pipeline:latest
+    depends_on:
+      - mq
+      - db    
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - BROKER_HOST={{MQ_HOST}}
+      - BROKER_PORT=5671
+      - BROKER_USER={{PRIVATE_BROKER_USER}}
+      - BROKER_PASSWORD={{PRIVATE_BROKER_PASSWORD}}
+      - BROKER_VHOST={{PRIVATE_BROKER_VHOST}}
+      - BROKER_QUEUE=mappings
+      - BROKER_EXCHANGE=sda
+      - BROKER_ROUTINGERROR=error
+      - BROKER_SSL=true
+      - BROKER_VERIFYPEER=true
+      - BROKER_CACERT=/etc/ega/CA.cert
+      - BROKER_CLIENTCERT=/etc/ega/client.cert
+      - BROKER_CLIENTKEY=/etc/ega/client-key.cert
+      - DB_HOST={{DB_HOST}}
+      - DB_PORT=5432
+      - DB_USER={{DB_LEGA_OUT_USER}}
+      - DB_PASSWORD={{DB_LEGA_OUT_PASSWORD}}
+      - DB_DATABASE=lega
+      - DB_SSLMODE=require
+      - DB_CLIENTCERT=/etc/ega/client.cert
+      - DB_CLIENTKEY=/etc/ega/client-key.cert
+      - LOG_LEVEL=debug
+    command: "sda-mapper"
+    secrets:
+      - source: rootCA.pem
+        target: /etc/ega/CA.cert
+      - source: client.pem
+        target: /etc/ega/client.cert
+        uid: '65534'
+        gid: '65534'
+        mode: 0600
+      - source: client-key.pem
+        target: /etc/ega/client-key.cert
+        uid: '65534'
+        gid: '65534'
+        mode: 0600
+
+  doa:
+    image: neicnordic/sda-doa:release-v1.6.0
+    depends_on:
+      - mq
+      - db    
+    ports:
+      - 80:8080
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - SSL_MODE=require
+      - SSL_ENABLED=false
+      - ARCHIVE_PATH={{ARCHIVE_PATH}}
+      - DB_INSTANCE={{DB_HOST}}
+      - POSTGRES_DB={{DB_DATABASE_NAME}}
+      - POSTGRES_PASSWORD={{DB_LEGA_OUT_PASSWORD}}
+      - OUTBOX_ENABLED=false
+    secrets:
+      - source: rootCA.pem
+        target: /etc/ega/ssl/CA.cert
+      - source: client.pem
+        target: /etc/ega/ssl/client.cert
+      - source: client-key.der
+        target: /etc/ega/ssl/client.key
+      - source: jwt.pub.pem
+        target: /etc/ega/jwt/passport.pem
+      - source: jwt.pub.pem
+        target: /etc/ega/jwt/visa.pem
+      - source: ega.sec.pem
+        target: /etc/ega/crypt4gh/key.pem
+      - source: ega.sec.pass
+        target: /etc/ega/crypt4gh/key.pass
+    volumes:
+      - /tmp/vault:/ega/archive
+    user: "65534:65534"
+
+
+  # CEGA mock
+  # Plain RabbitMQ only for now - cega messages triggered manually by test code
+  # based on neicnordic/sda-auth/.github/intergration/docker-compose.yml
+  # CEGA-auth based on neicnordic/sda-auth/dev-server/docker-compose.yml 
+  
+  cegamq:
+    image: rabbitmq:3.8.16-management-alpine
+    environment:
+      - RABBITMQ_CONFIG_FILE=/etc/rabbitmq/conf/cega
+      - RABBITMQ_ENABLED_PLUGINS_FILE=/etc/rabbitmq/conf/cega.plugins
+    ports:
+      - "5672:5671"
+      - "15672:15672"
+      - "25672:15672"
+    secrets:
+      - source: server.pem
+        target: /etc/rabbitmq/ssl/mq.pem
+        uid: '100'
+        gid: '101'
+        mode: 0600
+      - source: server-key.pem
+        target: /etc/rabbitmq/ssl/mq-key.pem
+        uid: '100'
+        gid: '101'
+        mode: 0600
+      - source: rootCA.pem
+        target: /etc/rabbitmq/ssl/ca.pem      
+    volumes:
+      - ./cega.conf:/etc/rabbitmq/conf/cega.conf
+      - ./cega.json:/etc/rabbitmq/conf/cega.json
+      - ./cega.plugins:/etc/rabbitmq/conf/cega.plugins
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "bash",
+          "-c",
+          "rabbitmq-diagnostics -q check_running && rabbitmq-diagnostics -q check_local_alarms"
+        ]
+      interval: 5s
+      timeout: 20s
+      retries: 3
+      
+  cega-auth:
+    container_name: cega-auth
+    image: egarchive/lega-base:release.v0.2.0
+    volumes:
+      - ./cega-users:/cega
+    command:
+      [
+        "python",
+        "/cega/cega-mock.py",
+        "0.0.0.0",
+        "8443",
+        "/cega/users.json"
+      ]
+    environment:
+      - LEGA_INSTANCES=dummy
+      - CEGA_USERS_PASSWORD=dummy
+      - CEGA_USERS_USER=dummy
+    ports:
+      - 8443:8443
+
+
+
+secrets:
+  rootCA.pem:
+    external: true
+  rootCA.p12:
+    external: true
+  server.pem:
+    external: true
+  server-key.pem:
+    external: true
+  server.p12:
+    external: true
+  client.pem:
+    external: true
+  client-key.pem:
+    external: true
+  client-key.der:
+    external: true
+  client.p12:
+    external: true
+  ega.sec.pem:
+    external: true
+  ega.sec.pass:
+    external: true
+  jwt.pub.pem:
+    external: true
+  init-mappings-db.sh:
+    external: true
+

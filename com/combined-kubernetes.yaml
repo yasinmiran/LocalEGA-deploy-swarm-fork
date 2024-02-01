@@ -1,0 +1,1375 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: cega-auth-claim0
+  name: cega-auth-claim0
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+status: {}
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert -f docker-template.yml
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: cega-auth
+  name: cega-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: cega-auth
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert -f docker-template.yml
+        kompose.version: 1.21.0 (992df58d8)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: cega-auth
+    spec:
+      containers:
+      - args:
+        - python
+        - /cega/cega-mock.py
+        - 0.0.0.0
+        - "8443"
+        - /cega/users.json
+        env:
+        - name: CEGA_USERS_PASSWORD
+          value: dummy
+        - name: CEGA_USERS_USER
+          value: dummy
+        - name: LEGA_INSTANCES
+          value: dummy
+        image: egarchive/lega-base:release.v0.2.0
+        imagePullPolicy: ""
+        name: cega-auth
+        ports:
+        - containerPort: 8443
+        resources: {}
+        volumeMounts:
+        - mountPath: /cega
+          name: cega-auth-claim0
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes:
+      - name: cega-auth-claim0
+        persistentVolumeClaim:
+          claimName: cega-auth-claim0
+status: {}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert -f docker-template.yml
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: cega-auth
+  name: cega-auth
+spec:
+  ports:
+  - name: "8443"
+    port: 8443
+    targetPort: 8443
+  selector:
+    io.kompose.service: cega-auth
+status:
+  loadBalancer: {}
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: cegamq-claim0
+  name: cegamq-claim0
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+status: {}
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: cegamq-claim1
+  name: cegamq-claim1
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+status: {}
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: cegamq-claim2
+  name: cegamq-claim2
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+status: {}
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert -f docker-template.yml
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: cegamq
+  name: cegamq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: cegamq
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert -f docker-template.yml
+        kompose.version: 1.21.0 (992df58d8)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: cegamq
+    spec:
+      containers:
+      - env:
+        - name: RABBITMQ_CONFIG_FILE
+          value: /etc/rabbitmq/conf/cega
+        - name: RABBITMQ_ENABLED_PLUGINS_FILE
+          value: /etc/rabbitmq/conf/cega.plugins
+        image: rabbitmq:3.8.16-management-alpine
+        imagePullPolicy: ""
+        livenessProbe:
+          exec:
+            command:
+            - bash
+            - -c
+            - rabbitmq-diagnostics -q check_running && rabbitmq-diagnostics -q check_local_alarms
+          failureThreshold: 3
+          periodSeconds: 5
+          timeoutSeconds: 20
+        name: cegamq
+        ports:
+        - containerPort: 5671
+        - containerPort: 15672
+        resources: {}
+        volumeMounts:
+        - mountPath: /etc/rabbitmq/ssl
+          name: server.pem
+        - mountPath: /etc/rabbitmq/ssl
+          name: server-key.pem
+        - mountPath: /etc/rabbitmq/ssl
+          name: rootCA.pem
+        - mountPath: /etc/rabbitmq/conf/cega.conf
+          name: cegamq-claim0
+        - mountPath: /etc/rabbitmq/conf/cega.json
+          name: cegamq-claim1
+        - mountPath: /etc/rabbitmq/conf/cega.plugins
+          name: cegamq-claim2
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes:
+      - name: server.pem
+        secret:
+          defaultMode: 384
+          items:
+          - key: server.pem
+            path: mq.pem
+          secretName: server.pem
+      - name: server-key.pem
+        secret:
+          defaultMode: 384
+          items:
+          - key: server-key.pem
+            path: mq-key.pem
+          secretName: server-key.pem
+      - name: rootCA.pem
+        secret:
+          items:
+          - key: rootCA.pem
+            path: ca.pem
+          secretName: rootCA.pem
+      - name: cegamq-claim0
+        persistentVolumeClaim:
+          claimName: cegamq-claim0
+      - name: cegamq-claim1
+        persistentVolumeClaim:
+          claimName: cegamq-claim1
+      - name: cegamq-claim2
+        persistentVolumeClaim:
+          claimName: cegamq-claim2
+status: {}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert -f docker-template.yml
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: cegamq
+  name: cegamq
+spec:
+  ports:
+  - name: "5672"
+    port: 5672
+    targetPort: 5671
+  - name: "15672"
+    port: 15672
+    targetPort: 15672
+  - name: "25672"
+    port: 25672
+    targetPort: 15672
+  selector:
+    io.kompose.service: cegamq
+status:
+  loadBalancer: {}
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: db-claim0
+  name: db-claim0
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+status: {}
+
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: db
+  name: db
+spec:
+  containers:
+  - env:
+    - name: DB_LEGA_IN_PASSWORD
+      value: '{{DB_LEGA_IN_PASSWORD}}'
+    - name: DB_LEGA_OUT_PASSWORD
+      value: '{{DB_LEGA_OUT_PASSWORD}}'
+    - name: PGDATA
+      value: /ega/data
+    - name: PG_CA
+      value: /etc/ega/CA.cert
+    - name: PG_SERVER_CERT
+      value: /etc/ega/pg.cert
+    - name: PG_SERVER_KEY
+      value: /etc/ega/pg.key
+    - name: PG_VERIFY_PEER
+      value: verify-ca
+    image: ghcr.io/neicnordic/sda-db:latest
+    livenessProbe:
+      exec:
+        command:
+        - pg_isready
+        - -h
+        - localhost
+        - -U
+        - lega_out
+      failureThreshold: 3
+      periodSeconds: 5
+      timeoutSeconds: 20
+    name: db
+    ports:
+    - containerPort: 5432
+    resources: {}
+    volumeMounts:
+    - mountPath: /etc/ega
+      name: server.pem
+    - mountPath: /etc/ega
+      name: server-key.pem
+    - mountPath: /etc/ega
+      name: rootCA.pem
+    - mountPath: /ega
+      name: db-claim0
+  restartPolicy: OnFailure
+  volumes:
+  - name: server.pem
+    secret:
+      defaultMode: 384
+      items:
+      - key: server.pem
+        path: pg.cert
+      secretName: server.pem
+  - name: server-key.pem
+    secret:
+      defaultMode: 384
+      items:
+      - key: server-key.pem
+        path: pg.key
+      secretName: server-key.pem
+  - name: rootCA.pem
+    secret:
+      defaultMode: 384
+      items:
+      - key: rootCA.pem
+        path: CA.cert
+      secretName: rootCA.pem
+  - name: db-claim0
+    persistentVolumeClaim:
+      claimName: db-claim0
+status: {}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert -f docker-template.yml
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: db
+  name: db
+spec:
+  ports:
+  - name: "5432"
+    port: 5432
+    targetPort: 5432
+  selector:
+    io.kompose.service: db
+status:
+  loadBalancer: {}
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: doa-claim0
+  name: doa-claim0
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+status: {}
+
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: doa
+  name: doa
+spec:
+  containers:
+  - env:
+    - name: ARCHIVE_PATH
+      value: '{{ARCHIVE_PATH}}'
+    - name: DB_INSTANCE
+      value: '{{DB_HOST}}'
+    - name: OUTBOX_ENABLED
+      value: "false"
+    - name: POSTGRES_DB
+      value: '{{DB_DATABASE_NAME}}'
+    - name: POSTGRES_PASSWORD
+      value: '{{DB_LEGA_OUT_PASSWORD}}'
+    - name: SSL_ENABLED
+      value: "false"
+    - name: SSL_MODE
+      value: require
+    image: neicnordic/sda-doa:release-v1.6.0
+    name: doa
+    ports:
+    - containerPort: 8080
+    resources: {}
+    volumeMounts:
+    - mountPath: /etc/ega/ssl
+      name: rootCA.pem
+    - mountPath: /etc/ega/ssl
+      name: client.pem
+    - mountPath: /etc/ega/ssl
+      name: client-key.der
+    - mountPath: /etc/ega/jwt
+      name: jwt.pub.pem
+    - mountPath: /etc/ega/jwt
+      name: jwt.pub.pem
+    - mountPath: /etc/ega/crypt4gh
+      name: ega.sec.pem
+    - mountPath: /etc/ega/crypt4gh
+      name: ega.sec.pass
+    - mountPath: /ega/archive
+      name: doa-claim0
+  restartPolicy: OnFailure
+  volumes:
+  - name: rootCA.pem
+    secret:
+      items:
+      - key: rootCA.pem
+        path: CA.cert
+      secretName: rootCA.pem
+  - name: client.pem
+    secret:
+      items:
+      - key: client.pem
+        path: client.cert
+      secretName: client.pem
+  - name: client-key.der
+    secret:
+      items:
+      - key: client-key.der
+        path: client.key
+      secretName: client-key.der
+  - name: jwt.pub.pem
+    secret:
+      items:
+      - key: jwt.pub.pem
+        path: passport.pem
+      secretName: jwt.pub.pem
+  - name: jwt.pub.pem
+    secret:
+      items:
+      - key: jwt.pub.pem
+        path: visa.pem
+      secretName: jwt.pub.pem
+  - name: ega.sec.pem
+    secret:
+      items:
+      - key: ega.sec.pem
+        path: key.pem
+      secretName: ega.sec.pem
+  - name: ega.sec.pass
+    secret:
+      items:
+      - key: ega.sec.pass
+        path: key.pass
+      secretName: ega.sec.pass
+  - name: doa-claim0
+    persistentVolumeClaim:
+      claimName: doa-claim0
+status: {}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert -f docker-template.yml
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: doa
+  name: doa
+spec:
+  ports:
+  - name: "80"
+    port: 80
+    targetPort: 8080
+  selector:
+    io.kompose.service: doa
+status:
+  loadBalancer: {}
+
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: finalize
+  name: finalize
+spec:
+  containers:
+  - args:
+    - sda-finalize
+    env:
+    - name: BROKER_CACERT
+      value: /etc/ega/CA.cert
+    - name: BROKER_CLIENTCERT
+      value: /etc/ega/client.cert
+    - name: BROKER_CLIENTKEY
+      value: /etc/ega/client-key.cert
+    - name: BROKER_EXCHANGE
+      value: sda
+    - name: BROKER_HOST
+      value: '{{MQ_HOST}}'
+    - name: BROKER_PASSWORD
+      value: '{{PRIVATE_BROKER_PASSWORD}}'
+    - name: BROKER_PORT
+      value: "5671"
+    - name: BROKER_QUEUE
+      value: accessionIDs
+    - name: BROKER_ROUTINGERROR
+      value: error
+    - name: BROKER_ROUTINGKEY
+      value: completed
+    - name: BROKER_SSL
+      value: "true"
+    - name: BROKER_USER
+      value: '{{PRIVATE_BROKER_USER}}'
+    - name: BROKER_VERIFYPEER
+      value: "true"
+    - name: BROKER_VHOST
+      value: '{{PRIVATE_BROKER_VHOST}}'
+    - name: DB_CLIENTCERT
+      value: /etc/ega/client.cert
+    - name: DB_CLIENTKEY
+      value: /etc/ega/client-key.cert
+    - name: DB_DATABASE
+      value: lega
+    - name: DB_HOST
+      value: '{{DB_HOST}}'
+    - name: DB_PASSWORD
+      value: '{{DB_LEGA_IN_PASSWORD}}'
+    - name: DB_PORT
+      value: "5432"
+    - name: DB_SSLMODE
+      value: require
+    - name: DB_USER
+      value: '{{DB_LEGA_IN_USER}}'
+    - name: LOG_LEVEL
+      value: debug
+    image: ghcr.io/neicnordic/sda-pipeline:latest
+    name: finalize
+    resources: {}
+    volumeMounts:
+    - mountPath: /etc/ega
+      name: rootCA.pem
+    - mountPath: /etc/ega
+      name: client.pem
+    - mountPath: /etc/ega
+      name: client-key.pem
+  restartPolicy: OnFailure
+  volumes:
+  - name: rootCA.pem
+    secret:
+      items:
+      - key: rootCA.pem
+        path: CA.cert
+      secretName: rootCA.pem
+  - name: client.pem
+    secret:
+      defaultMode: 384
+      items:
+      - key: client.pem
+        path: client.cert
+      secretName: client.pem
+  - name: client-key.pem
+    secret:
+      defaultMode: 384
+      items:
+      - key: client-key.pem
+        path: client-key.cert
+      secretName: client-key.pem
+status: {}
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: ingest-claim0
+  name: ingest-claim0
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+status: {}
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: ingest-claim1
+  name: ingest-claim1
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+status: {}
+
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: ingest
+  name: ingest
+spec:
+  containers:
+  - args:
+    - sda-ingest
+    env:
+    - name: ARCHIVE_LOCATION
+      value: /ega/archive
+    - name: ARCHIVE_TYPE
+      value: posix
+    - name: BROKER_CACERT
+      value: /etc/ega/CA.cert
+    - name: BROKER_CLIENTCERT
+      value: /etc/ega/client.cert
+    - name: BROKER_CLIENTKEY
+      value: /etc/ega/client-key.cert
+    - name: BROKER_EXCHANGE
+      value: sda
+    - name: BROKER_HOST
+      value: '{{MQ_HOST}}'
+    - name: BROKER_PASSWORD
+      value: '{{PRIVATE_BROKER_PASSWORD}}'
+    - name: BROKER_PORT
+      value: "5671"
+    - name: BROKER_QUEUE
+      value: ingest
+    - name: BROKER_ROUTINGERROR
+      value: error
+    - name: BROKER_ROUTINGKEY
+      value: archived
+    - name: BROKER_SSL
+      value: "true"
+    - name: BROKER_USER
+      value: '{{PRIVATE_BROKER_USER}}'
+    - name: BROKER_VERIFYPEER
+      value: "true"
+    - name: BROKER_VHOST
+      value: '{{PRIVATE_BROKER_VHOST}}'
+    - name: C4GH_FILEPATH
+      value: /etc/ega/ega.sec
+    - name: C4GH_PASSPHRASE
+      value: '{{KEY_PASSWORD}}'
+    - name: DB_CLIENTCERT
+      value: /etc/ega/client.cert
+    - name: DB_CLIENTKEY
+      value: /etc/ega/client-key.cert
+    - name: DB_DATABASE
+      value: lega
+    - name: DB_HOST
+      value: '{{DB_HOST}}'
+    - name: DB_PASSWORD
+      value: '{{DB_LEGA_IN_PASSWORD}}'
+    - name: DB_PORT
+      value: "5432"
+    - name: DB_SSLMODE
+      value: require
+    - name: DB_USER
+      value: '{{DB_LEGA_IN_USER}}'
+    - name: INBOX_LOCATION
+      value: /ega/inbox
+    - name: INBOX_TYPE
+      value: posix
+    - name: LOG_LEVEL
+      value: debug
+    image: ghcr.io/neicnordic/sda-pipeline:latest
+    name: ingest
+    resources: {}
+    volumeMounts:
+    - mountPath: /etc/ega
+      name: rootCA.pem
+    - mountPath: /etc/ega
+      name: client.pem
+    - mountPath: /etc/ega
+      name: client-key.pem
+    - mountPath: /etc/ega
+      name: ega.sec.pem
+    - mountPath: /ega/inbox
+      name: ingest-claim0
+    - mountPath: /ega/archive
+      name: ingest-claim1
+  restartPolicy: OnFailure
+  volumes:
+  - name: rootCA.pem
+    secret:
+      items:
+      - key: rootCA.pem
+        path: CA.cert
+      secretName: rootCA.pem
+  - name: client.pem
+    secret:
+      defaultMode: 384
+      items:
+      - key: client.pem
+        path: client.cert
+      secretName: client.pem
+  - name: client-key.pem
+    secret:
+      defaultMode: 384
+      items:
+      - key: client-key.pem
+        path: client-key.cert
+      secretName: client-key.pem
+  - name: ega.sec.pem
+    secret:
+      items:
+      - key: ega.sec.pem
+        path: ega.sec
+      secretName: ega.sec.pem
+  - name: ingest-claim0
+    persistentVolumeClaim:
+      claimName: ingest-claim0
+  - name: ingest-claim1
+    persistentVolumeClaim:
+      claimName: ingest-claim1
+status: {}
+
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: interceptor
+  name: interceptor
+spec:
+  containers:
+  - env:
+    - name: CEGA_MQ_CONNECTION
+      value: '{{CEGA_MQ_CONNECTION}}'
+    - name: CEGA_MQ_EXCHANGE
+      value: localega.v1
+    - name: CEGA_MQ_QUEUE
+      value: v1.files
+    - name: LEGA_MQ_CONNECTION
+      value: '{{MQ_CONNECTION}}'
+    - name: LEGA_MQ_EXCHANGE
+      value: sda
+    - name: POSTGRES_CONNECTION
+      value: '{{POSTGRES_CONNECTION}}'
+    image: ghcr.io/uio-bmi/mq-interceptor:latest
+    name: interceptor
+    resources: {}
+  restartPolicy: OnFailure
+status: {}
+
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: mapper
+  name: mapper
+spec:
+  containers:
+  - args:
+    - sda-mapper
+    env:
+    - name: BROKER_CACERT
+      value: /etc/ega/CA.cert
+    - name: BROKER_CLIENTCERT
+      value: /etc/ega/client.cert
+    - name: BROKER_CLIENTKEY
+      value: /etc/ega/client-key.cert
+    - name: BROKER_EXCHANGE
+      value: sda
+    - name: BROKER_HOST
+      value: '{{MQ_HOST}}'
+    - name: BROKER_PASSWORD
+      value: '{{PRIVATE_BROKER_PASSWORD}}'
+    - name: BROKER_PORT
+      value: "5671"
+    - name: BROKER_QUEUE
+      value: mappings
+    - name: BROKER_ROUTINGERROR
+      value: error
+    - name: BROKER_SSL
+      value: "true"
+    - name: BROKER_USER
+      value: '{{PRIVATE_BROKER_USER}}'
+    - name: BROKER_VERIFYPEER
+      value: "true"
+    - name: BROKER_VHOST
+      value: '{{PRIVATE_BROKER_VHOST}}'
+    - name: DB_CLIENTCERT
+      value: /etc/ega/client.cert
+    - name: DB_CLIENTKEY
+      value: /etc/ega/client-key.cert
+    - name: DB_DATABASE
+      value: lega
+    - name: DB_HOST
+      value: '{{DB_HOST}}'
+    - name: DB_PASSWORD
+      value: '{{DB_LEGA_OUT_PASSWORD}}'
+    - name: DB_PORT
+      value: "5432"
+    - name: DB_SSLMODE
+      value: require
+    - name: DB_USER
+      value: '{{DB_LEGA_OUT_USER}}'
+    - name: LOG_LEVEL
+      value: debug
+    image: ghcr.io/neicnordic/sda-pipeline:latest
+    name: mapper
+    resources: {}
+    volumeMounts:
+    - mountPath: /etc/ega
+      name: rootCA.pem
+    - mountPath: /etc/ega
+      name: client.pem
+    - mountPath: /etc/ega
+      name: client-key.pem
+  restartPolicy: OnFailure
+  volumes:
+  - name: rootCA.pem
+    secret:
+      items:
+      - key: rootCA.pem
+        path: CA.cert
+      secretName: rootCA.pem
+  - name: client.pem
+    secret:
+      defaultMode: 384
+      items:
+      - key: client.pem
+        path: client.cert
+      secretName: client.pem
+  - name: client-key.pem
+    secret:
+      defaultMode: 384
+      items:
+      - key: client-key.pem
+        path: client-key.cert
+      secretName: client-key.pem
+status: {}
+
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: mq
+  name: mq
+spec:
+  containers:
+  - env:
+    - name: PASSWORD_HASH
+      value: '{{PRIVATE_BROKER_HASH}}'
+    - name: SSL_DEPTH
+      value: "2"
+    - name: SSL_FAIL_IF_NO_PEER_CERT
+      value: "false"
+    - name: SSL_VERIFY
+      value: verify_peer
+    - name: USER_NAME
+      value: '{{PRIVATE_BROKER_USER}}'
+    - name: VIRTUAL_HOST
+      value: '{{PRIVATE_BROKER_VHOST}}'
+    image: ghcr.io/uio-bmi/localega-broker:latest
+    livenessProbe:
+      exec:
+        command:
+        - nc
+        - -z
+        - localhost
+        - "5671"
+      failureThreshold: 3
+      periodSeconds: 5
+      timeoutSeconds: 20
+    name: mq
+    ports:
+    - containerPort: 5671
+    - containerPort: 15671
+    resources: {}
+    volumeMounts:
+    - mountPath: /etc/rabbitmq
+      name: server.pem
+    - mountPath: /etc/rabbitmq
+      name: server-key.pem
+    - mountPath: /etc/rabbitmq
+      name: rootCA.pem
+  restartPolicy: OnFailure
+  volumes:
+  - name: server.pem
+    secret:
+      items:
+      - key: server.pem
+        path: ssl.cert
+      secretName: server.pem
+  - name: server-key.pem
+    secret:
+      items:
+      - key: server-key.pem
+        path: ssl.key
+      secretName: server-key.pem
+  - name: rootCA.pem
+    secret:
+      items:
+      - key: rootCA.pem
+        path: CA.cert
+      secretName: rootCA.pem
+status: {}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert -f docker-template.yml
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: mq
+  name: mq
+spec:
+  ports:
+  - name: "5671"
+    port: 5671
+    targetPort: 5671
+  - name: "15671"
+    port: 15671
+    targetPort: 15671
+  selector:
+    io.kompose.service: mq
+status:
+  loadBalancer: {}
+
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: postgres
+  name: postgres
+spec:
+  containers:
+  - env:
+    - name: POSTGRES_PASSWORD
+      value: '{{POSTGRES_PASSWORD}}'
+    image: postgres
+    name: postgres
+    ports:
+    - containerPort: 5432
+    resources: {}
+    volumeMounts:
+    - mountPath: /docker-entrypoint-initdb.d
+      name: init-mappings-db.sh
+  restartPolicy: OnFailure
+  volumes:
+  - name: init-mappings-db.sh
+    secret:
+      items:
+      - key: init-mappings-db.sh
+        path: init-mappings-db.sh
+      secretName: init-mappings-db.sh
+status: {}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert -f docker-template.yml
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: postgres
+  name: postgres
+spec:
+  ports:
+  - name: "5433"
+    port: 5433
+    targetPort: 5432
+  selector:
+    io.kompose.service: postgres
+status:
+  loadBalancer: {}
+
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: proxy
+  name: proxy
+spec:
+  containers:
+  - env:
+    - name: BROKER_HOST
+      value: '{{BROKER_HOST}}'
+    - name: BROKER_PASSWORD
+      value: '{{BROKER_PASSWORD}}'
+    - name: BROKER_PORT
+      value: '{{BROKER_PORT}}'
+    - name: BROKER_USERNAME
+      value: '{{BROKER_USERNAME}}'
+    - name: BROKER_VALIDATE
+      value: '{{BROKER_VALIDATE}}'
+    - name: BROKER_VHOST
+      value: '{{BROKER_VHOST}}'
+    - name: CEGA_AUTH_URL
+      value: '{{CEGA_AUTH_URL}}'
+    - name: CEGA_PASSWORD
+      value: '{{CEGA_PASSWORD}}'
+    - name: CEGA_USERNAME
+      value: '{{CEGA_USERNAME}}'
+    - name: CLIENT_ID
+      value: test
+    - name: CLIENT_SECRET
+      value: test
+    - name: EXCHANGE
+      value: '{{EXCHANGE}}'
+    - name: POSTGRES_PASSWORD
+      value: '{{POSTGRES_PASSWORD}}'
+    - name: ROOT_CERT_PASSWORD
+      value: '{{ROOT_CERT_PASSWORD}}'
+    - name: SERVER_CERT_PASSWORD
+      value: '{{SERVER_CERT_PASSWORD}}'
+    - name: TSD_ACCESS_KEY
+      value: '{{TSD_ACCESS_KEY}}'
+    - name: TSD_HOST
+      value: '{{TSD_HOST}}'
+    - name: TSD_ROOT_CERT_PASSWORD
+      value: '{{TSD_ROOT_CERT_PASSWORD}}'
+    image: ghcr.io/uio-bmi/localega-tsd-proxy:latest
+    name: proxy
+    ports:
+    - containerPort: 8080
+    resources: {}
+    volumeMounts:
+    - mountPath: /etc/ega/ssl
+      name: rootCA.p12
+    - mountPath: /etc/ega/ssl
+      name: server.p12
+    - mountPath: /etc/ega/jwt
+      name: jwt.pub.pem
+    - mountPath: /etc/ega/jwt
+      name: jwt.pub.pem
+  restartPolicy: OnFailure
+  volumes:
+  - name: rootCA.p12
+    secret:
+      items:
+      - key: rootCA.p12
+        path: CA.cert
+      secretName: rootCA.p12
+  - name: server.p12
+    secret:
+      items:
+      - key: server.p12
+        path: server.cert
+      secretName: server.p12
+  - name: jwt.pub.pem
+    secret:
+      items:
+      - key: jwt.pub.pem
+        path: passport.pem
+      secretName: jwt.pub.pem
+  - name: jwt.pub.pem
+    secret:
+      items:
+      - key: jwt.pub.pem
+        path: visa.pem
+      secretName: jwt.pub.pem
+status: {}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert -f docker-template.yml
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: proxy
+  name: proxy
+spec:
+  ports:
+  - name: "10443"
+    port: 10443
+    targetPort: 8080
+  selector:
+    io.kompose.service: proxy
+status:
+  loadBalancer: {}
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: tsd-claim0
+  name: tsd-claim0
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+status: {}
+
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: tsd
+  name: tsd
+spec:
+  containers:
+  - env:
+    - name: CERT_PASSWORD
+      value: '{{SERVER_CERT_PASSWORD}}'
+    image: uiobmi/tsd-stub:latest
+    name: tsd
+    resources: {}
+    volumeMounts:
+    - mountPath: /etc/ega/ssl
+      name: rootCA.pem
+    - mountPath: /etc/ega/ssl
+      name: server.p12
+    - mountPath: /tsd/p11/data/durable/apps/ega/
+      name: tsd-claim0
+  restartPolicy: OnFailure
+  volumes:
+  - name: rootCA.pem
+    secret:
+      items:
+      - key: rootCA.pem
+        path: CA.cert
+      secretName: rootCA.pem
+  - name: server.p12
+    secret:
+      items:
+      - key: server.p12
+        path: server.cert
+      secretName: server.p12
+  - name: tsd-claim0
+    persistentVolumeClaim:
+      claimName: tsd-claim0
+status: {}
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: verify-claim0
+  name: verify-claim0
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+status: {}
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: verify-claim1
+  name: verify-claim1
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+status: {}
+
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: verify
+  name: verify
+spec:
+  containers:
+  - args:
+    - sda-verify
+    env:
+    - name: ARCHIVE_LOCATION
+      value: /ega/archive
+    - name: ARCHIVE_TYPE
+      value: posix
+    - name: BROKER_CACERT
+      value: /etc/ega/CA.cert
+    - name: BROKER_CLIENTCERT
+      value: /etc/ega/client.cert
+    - name: BROKER_CLIENTKEY
+      value: /etc/ega/client-key.cert
+    - name: BROKER_EXCHANGE
+      value: sda
+    - name: BROKER_HOST
+      value: '{{MQ_HOST}}'
+    - name: BROKER_PASSWORD
+      value: '{{PRIVATE_BROKER_PASSWORD}}'
+    - name: BROKER_PORT
+      value: "5671"
+    - name: BROKER_QUEUE
+      value: archived
+    - name: BROKER_ROUTINGERROR
+      value: error
+    - name: BROKER_ROUTINGKEY
+      value: verified
+    - name: BROKER_SSL
+      value: "true"
+    - name: BROKER_USER
+      value: '{{PRIVATE_BROKER_USER}}'
+    - name: BROKER_VERIFYPEER
+      value: "true"
+    - name: BROKER_VHOST
+      value: '{{PRIVATE_BROKER_VHOST}}'
+    - name: C4GH_FILEPATH
+      value: /etc/ega/ega.sec
+    - name: C4GH_PASSPHRASE
+      value: '{{KEY_PASSWORD}}'
+    - name: DB_CLIENTCERT
+      value: /etc/ega/client.cert
+    - name: DB_CLIENTKEY
+      value: /etc/ega/client-key.cert
+    - name: DB_DATABASE
+      value: lega
+    - name: DB_HOST
+      value: '{{DB_HOST}}'
+    - name: DB_PASSWORD
+      value: '{{DB_LEGA_IN_PASSWORD}}'
+    - name: DB_PORT
+      value: "5432"
+    - name: DB_SSLMODE
+      value: require
+    - name: DB_USER
+      value: '{{DB_LEGA_IN_USER}}'
+    - name: INBOX_LOCATION
+      value: /ega/inbox
+    - name: LOG_LEVEL
+      value: debug
+    image: ghcr.io/neicnordic/sda-pipeline:latest
+    name: verify
+    resources: {}
+    volumeMounts:
+    - mountPath: /etc/ega
+      name: rootCA.pem
+    - mountPath: /etc/ega
+      name: client.pem
+    - mountPath: /etc/ega
+      name: client-key.pem
+    - mountPath: /etc/ega
+      name: ega.sec.pem
+    - mountPath: /ega/archive
+      name: verify-claim0
+    - mountPath: /ega/inbox
+      name: verify-claim1
+  restartPolicy: OnFailure
+  volumes:
+  - name: rootCA.pem
+    secret:
+      items:
+      - key: rootCA.pem
+        path: CA.cert
+      secretName: rootCA.pem
+  - name: client.pem
+    secret:
+      defaultMode: 384
+      items:
+      - key: client.pem
+        path: client.cert
+      secretName: client.pem
+  - name: client-key.pem
+    secret:
+      defaultMode: 384
+      items:
+      - key: client-key.pem
+        path: client-key.cert
+      secretName: client-key.pem
+  - name: ega.sec.pem
+    secret:
+      items:
+      - key: ega.sec.pem
+        path: ega.sec
+      secretName: ega.sec.pem
+  - name: verify-claim0
+    persistentVolumeClaim:
+      claimName: verify-claim0
+  - name: verify-claim1
+    persistentVolumeClaim:
+      claimName: verify-claim1
+status: {}
